@@ -988,21 +988,7 @@ function vOggi(){
         h('div', { class:'panel-head' }, h('h3', {}, 'Ultimi aggiornamenti'), h('button', { class:'link', type:'button', onclick:function(){ vai('diario'); } }, 'Tutti')),
         ultimi.length ? ultimi.map(function(u){
           return h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(u.data)), h('span', { class:'what' }, h('strong', {}, u.titolo), u.testo ? h('span', { class:'small muted' }, ' · ' + String(u.testo).split('\n')[0]) : null));
-        }) : h('p', { class:'muted' }, 'Il primo aggiornamento arriverà a breve.'))),
-
-    S.canEdit ? h('section', { class:'interno' },
-      h('div', { class:'sec-head' }, h('div', {}, h('h4', {}, 'Solo per te · non visibile alle Proprietarie'), h('h2', {}, 'Le tue scadenze e i punti da presidiare')),
-        h('button', { class:'link', type:'button', onclick:function(){ S.aperti['s-ris'] = true; vai('scheda'); } }, 'Note interne')),
-      h('div', { class:'cols' },
-        h('div', { class:'stack' }, scadenze.length ? scadenze.map(function(a){
-          return h('div', { class:'mini' }, h('span', { class:'when' + (a.scadenza < og ? ' neg' : '') }, dataCorta(a.scadenza)),
-            h('span', { class:'what' }, a.titolo, a.chi ? h('span', { class:'small muted' }, ' · ' + a.chi) : null),
-            a.scadenza < og ? pill('crit', 'Scaduta') : null);
-        }) : h('p', { class:'muted' }, 'Nessuna attività aperta con scadenza.')),
-        h('div', { class:'stack' }, caldi.length ? caldi.map(function(r){
-          return h('div', { class:'mini' }, h('span', { class:'what' }, h('strong', {}, r.titolo), r.descr ? h('span', { class:'small muted' }, ' · ' + r.descr) : null),
-            pill(r.impatto === 'alto' ? 'crit' : 'warn', 'Impatto ' + (r.impatto || '–')));
-        }) : h('p', { class:'muted' }, 'Nessun punto aperto.')))) : null
+        }) : h('p', { class:'muted' }, 'Il primo aggiornamento arriverà a breve.')))
   ];
 }
 
@@ -1068,7 +1054,6 @@ function vScheda(){
       h('div', { class:'intro-side' }, S.canEdit ? btn('Modifica dati', editOp, 'ghost') : null)),
     h('div', {},
       acc('s-eco', 'Piano economico', [S.canEdit ? h('div', {}, btn('Aggiungi voce di costo', function(){ editVoce(); }, 'ghost')) : null].concat(vEconomico().slice(1)), true),
-      S.canEdit ? acc('s-ris', 'Note interne · punti da presidiare (non visibili alle Proprietarie)', [h('div', {}, btn('Aggiungi punto', function(){ editRischio(); }, 'ghost'))].concat(vRischi().slice(1))) : null,
       acc('s-strut', 'Struttura e regole dell’incarico', [h('div', { class:'stack' }, h('h3', {}, 'Ripartizione dell’utile previsto'), ripartizione())].concat(vStruttura().slice(1))),
       acc('s-imm', 'Immobile e condizioni di acquisto', vImmobile().slice(1)))
   ];
