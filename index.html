@@ -314,8 +314,8 @@ dialog::backdrop{background:rgba(15,13,11,.65)}
 
 /* cruscotto */
 h1.compact{font-size:clamp(30px,4.6vw,42px)}
-.live{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);flex-wrap:wrap}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.live{font-size:13px;color:var(--ink2)}
+.live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:8px}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .tile{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .tile .l{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
@@ -479,8 +479,8 @@ table.recap tr.forte td{background:transparent}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=36d2773c1e66"></script>
-<script src="archivio.js?v=36d2773c1e66"></script>
+<script src="config.js?v=be85b2585e87"></script>
+<script src="archivio.js?v=be85b2585e87"></script>
 <script>
 (function(){
 'use strict';
@@ -1695,7 +1695,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '36d2773c1e66';
+  var V = 'be85b2585e87';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
