@@ -33,6 +33,7 @@ var stile = el('style', {},
   '#accesso img{height:20px;width:auto;align-self:flex-start}' +
   '#accesso h1{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.1;margin:8px 0 0}' +
   '#accesso p{margin:0;color:var(--on-band-2);font-size:14px;line-height:1.5}' +
+  '#accesso img{filter:var(--logo)}' +
   '#accesso form{display:flex;flex-direction:column;gap:12px}' +
   '#accesso label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-band-2);display:flex;flex-direction:column;gap:6px}' +
   '#accesso input{font:inherit;font-size:16px;letter-spacing:0;text-transform:none;padding:11px 12px;border:1px solid var(--band-line);background:transparent;color:var(--on-band);border-radius:2px}' +

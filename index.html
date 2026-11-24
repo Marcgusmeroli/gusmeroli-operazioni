@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#FAF8F4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gusmeroli">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icona-180.png">
@@ -19,18 +19,18 @@
 /* Layout: fascia scura col logo e le sezioni in alto, sotto una colonna unica larga 1120px; le cifre in Times, tutto il resto in Arial, come nei manuali Gusmeroli. */
 :root{
   --bg:#FAF8F4; --panel:#F1EDE6; --ink:#1F1C19; --ink2:#5E564E; --line:#E3DDD3; --sand:#B8A898;
-  --gold:#7D6436; --gold-fill:#A8894F; --gold-soft:#EADFCB; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --gold:#7D6436; --gold-fill:#A8894F; --gold-soft:#EADFCB; --band:#FAF8F4; --on-band:#1F1C19; --on-band-2:#8A8178; --band-line:#E3DDD3; --logo:invert(1);
   --ok:#2F6B4F; --ok-bg:#E4ECE3; --warn:#8A5A12; --warn-bg:#F3E7CF; --crit:#8C2F2F; --crit-bg:#F2DEDC;
   --serif:"Times New Roman",Times,Georgia,serif; --sans:"Times New Roman",Times,Georgia,serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#171513; --on-band:#F4F1EC; --on-band-2:#8C7F72; --band-line:#3A3530; --logo:none;
   --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
   color-scheme:dark } }
 :root[data-theme="dark"]{
   --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#171513; --on-band:#F4F1EC; --on-band-2:#8C7F72; --band-line:#3A3530; --logo:none;
   --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
   color-scheme:dark }
 
@@ -46,7 +46,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .band{background:var(--band);color:var(--on-band);border-bottom:2px solid var(--gold-fill);padding-top:env(safe-area-inset-top,0px)}
 .band-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-block:20px 14px}
-.logo{height:19px;width:auto;display:block}
+.logo{height:19px;width:auto;display:block;filter:var(--logo)}
 .logo-link{display:block;padding:6px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .role{display:none}
 .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
@@ -371,6 +371,30 @@ details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
 details.cartella.sotto > summary .nome{font-weight:400}
 .cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
 .cartella-body .row:last-child{border-bottom:0}
+/* ---------- aspetto leggero: niente blocchi pieni, solo linee sottili e spazio ---------- */
+.band{border-bottom:1px solid var(--line)}
+.nav button[aria-current="page"]{border-bottom-color:var(--ink)}
+.panel{background:transparent;border:1px solid var(--line);padding:20px}
+.tile,.tile.buono{background:transparent;border-top:1px solid var(--line);padding:14px 0 4px}
+.tiles{gap:4px 28px}
+.empty{background:transparent;border:1px solid var(--line)}
+.notice{background:transparent;border-left:2px solid var(--gold-fill)}
+.hero,.figures{border-top-color:var(--line)}
+details.acc,details.acc:last-child,.fase-blk{border-color:var(--line)}
+.party{border-top:1px solid var(--line)}
+.party.gestore{border-top-color:var(--gold-fill)}
+th{border-bottom-color:var(--sand)}
+table.recap tr.forte td{background:transparent}
+.btn{background:transparent;color:var(--ink);border-color:var(--ink)}
+.btn:hover{background:var(--ink);color:var(--bg);opacity:1}
+.btn.ghost{border-color:var(--line)}
+.btn.doc{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.doc:hover{background:transparent;color:var(--ink);border-color:var(--ink)}
+.btn.doc .go{border:0;padding:0;color:var(--gold)}
+.chip[aria-pressed="true"]{background:transparent;color:var(--ink);border-color:var(--ink)}
+.split-bar .inv{background:var(--ink2)}
+.split-bar .inv2{background:var(--sand);color:var(--ink)}
+
 /* ---------- computer: logo e menu su una riga sola ---------- */
 @media (min-width:860px){
   .band .wrap{display:flex;align-items:center;justify-content:space-between;gap:32px}
@@ -390,14 +414,16 @@ details.cartella.sotto > summary .nome{font-weight:400}
   .band{border-bottom-width:1px}
   .band-top{justify-content:flex-start;padding-block:12px}
   .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;overflow:visible;
-       background:var(--band);border-top:2px solid var(--gold-fill);padding:4px max(4px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px))}
+       background:var(--band);border-top:1px solid var(--line);padding:4px max(4px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px))}
   .nav button,.nav button:first-child{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:52px;padding:6px 0;
        border-bottom:0;font-size:12px;letter-spacing:.02em;white-space:nowrap;-webkit-tap-highlight-color:transparent}
   .nav .ico{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .nav .lungo{display:none}
   .nav .corto{display:block}
   .nav button[aria-current="page"]{color:var(--on-band)}
-  .nav button[aria-current="page"] .ico{stroke:var(--gold-fill);stroke-width:2}
+  .nav button[aria-current="page"] .ico{stroke:var(--ink);stroke-width:2}
+  .tiles{gap:0 20px}
+  table.recap tr.forte{background:transparent;padding-inline:0}
   footer{padding-bottom:16px}
   /* tocchi comodi */
   .link{font-size:14px;padding:8px 0}
@@ -424,7 +450,6 @@ details.cartella.sotto > summary .nome{font-weight:400}
   td:not(:first-child):empty{display:none}
   td .bar{margin-left:0}
   tfoot td,tfoot th{border-top:0}
-  table.recap tr.forte{background:var(--panel);padding-inline:10px}
   table.recap tr.forte td{background:transparent}
   table.recap tr.forte td:first-child{padding-left:0}
 }
@@ -454,8 +479,8 @@ details.cartella.sotto > summary .nome{font-weight:400}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=67bb1d99546c"></script>
-<script src="archivio.js?v=67bb1d99546c"></script>
+<script src="config.js?v=36d2773c1e66"></script>
+<script src="archivio.js?v=36d2773c1e66"></script>
 <script>
 (function(){
 'use strict';
@@ -1670,7 +1695,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '67bb1d99546c';
+  var V = '36d2773c1e66';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
