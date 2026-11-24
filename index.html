@@ -70,8 +70,10 @@ h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold
 .fig .n{font-size:12px;color:var(--ink2)}
 .hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
 .hero-main{padding:26px 24px 26px 0;display:flex;flex-direction:column;gap:8px;justify-content:center;min-width:0}
-.hero-main .l{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
-.hero-main .v{font-family:var(--serif);font-size:clamp(68px,13vw,124px);line-height:.92;font-variant-numeric:tabular-nums}
+.hero-main .l{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.hero-main .v{font-family:var(--serif);font-size:clamp(42px,7vw,64px);line-height:1;font-variant-numeric:tabular-nums;color:var(--ok)}
+.buono .v{color:var(--ok)}
+.tile.buono{background:var(--ok-bg)}
 .hero-main .n{font-size:14px;color:var(--ink2)}
 .hero-side{border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
 .hero-side .fig{flex:1;justify-content:center;padding:14px 0 14px 24px;border-left:0}
@@ -955,6 +957,7 @@ function vOggi(){
   var qs = ps.length ? (Number(ps[0].quota) || 50) / 100 : 1;
   var roi = p.costo ? p.atteso / p.costo : 0, roiPiano = p.tot ? p.piano / p.tot : 0;
   var utileProp = p.atteso * (1 - q), utilePropPiano = p.piano * (1 - q);
+  function buono(el){ el.classList.add('buono'); return el; }
   function big(l, v, n){ return h('div', { class:'fig' }, h('span', { class:'l' }, l), h('span', { class:'v' }, v), n ? h('span', { class:'n' }, n) : null); }
   function delta(d, sfavorevoleSePositivo, comePunti){
     if (Math.abs(d) < (comePunti ? 0.0005 : 1)) return h('td', { class:'num muted' }, '–');
@@ -975,11 +978,11 @@ function vOggi(){
     /* il numero che conta per primo, poi i tre che lo spiegano */
     h('div', { class:'hero', role:'group', 'aria-label':'Numeri dell’operazione' },
       h('div', { class:'hero-main' },
-        h('span', { class:'l' }, 'Ritorno sul capitale (ROI)'),
-        h('span', { class:'v' }, pct(roi)),
-        h('span', { class:'n' }, pct(roi * 12 / mesi) + ' su base annua · operazione di ' + mesi + ' mesi')),
+        h('span', { class:'l' }, 'Margine atteso dell’operazione'),
+        h('span', { class:'v' }, eur0(p.atteso)),
+        h('span', { class:'n' }, scost(p.delta), ' · in ' + mesi + ' mesi')),
       h('div', { class:'hero-side' },
-        big('Margine atteso', eur0(p.atteso), scost(p.delta)),
+        h('div', { class:'fig buono' }, h('span', { class:'l' }, 'Ritorno sul capitale (ROI)'), h('span', { class:'v' }, pct(roi)), h('span', { class:'n' }, pct(roi * 12 / mesi) + ' su base annua')),
         big('Capitale complessivo', eur0(p.costo), 'versato finora ' + eur0(c.versato)),
         big('Ricavi attesi', eur0(p.ric), p.vendute + ' di ' + p.unita + ' unità vendute'))),
 
@@ -987,8 +990,8 @@ function vOggi(){
       h('h4', {}, 'Per ciascuna società proprietaria · quota ' + Math.round(qs * 100) + '%'),
       h('div', { class:'tiles' },
         tile('Capitale da impegnare', eur0(p.costo * qs), ps.map(function(x){ return x.nome.replace(/ S\.R\.L\.$/i, '') + ' ' + eur0(c.perSoc[x.id] || 0); }).join(' · ') + ' versati'),
-        tile('Utile atteso', eur0(utileProp * qs), 'dopo il compenso di gestione del ' + Math.round(q * 100) + '%'),
-        tile('Rendimento atteso', pct(p.costo ? utileProp / p.costo : 0), pct(p.costo ? utileProp / p.costo * 12 / mesi : 0) + ' su base annua'),
+        buono(tile('Utile atteso', eur0(utileProp * qs), 'dopo il compenso di gestione del ' + Math.round(q * 100) + '%')),
+        buono(tile('Rendimento atteso', pct(p.costo ? utileProp / p.costo : 0), pct(p.costo ? utileProp / p.costo * 12 / mesi : 0) + ' su base annua')),
         tile('Rientro previsto', op.dataVenditaPrevista ? data(op.dataVenditaPrevista) : '–', 'capitale più utile: ' + eur0((p.costo + utileProp) * qs)))) : null,
 
     acc('o-piano', 'Piano e andamento · confronto in dettaglio', [
