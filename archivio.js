@@ -239,9 +239,7 @@ function intestazione(){
     chi.appendChild(sel);
   }
   if (chi.firstChild) top.appendChild(chi);
-  /* niente mail né «Esci» in testa: l'uscita resta come collegamento discreto a fondo pagina */
-  var piede = document.querySelector('footer');
-  if (piede) piede.appendChild(el('button', { class:'esci', type:'button', onclick:esci }, 'Esci'));
+  /* niente mail né «Esci»: tolti su richiesta di Marco (24/11/2026) */
 }
 function dopoAccesso(sessione){
   utente = sessione.user;
