@@ -11,18 +11,18 @@
 /* Layout: fascia scura col logo e le sezioni in alto, sotto una colonna unica larga 1120px; le cifre in Times, tutto il resto in Arial, come nei manuali Gusmeroli. */
 :root{
   --bg:#FBFBFD; --panel:#F2F0ED; --ink:#2C2926; --ink2:#5E564E; --line:#E2DCD4; --sand:#B8A898;
-  --gold:#886E46; --gold-fill:#B0905A; --gold-soft:#EADFCB; --band:#2C2926; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#4A443E;
+  --gold:#886E46; --gold-fill:#B0905A; --gold-soft:#EADFCB; --band:#000000; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#2E2E2E;
   --ok:#3F6B4C; --ok-bg:#E3ECE2; --warn:#8A5A12; --warn-bg:#F3E7CF; --crit:#9A3F34; --crit-bg:#F3DEDA;
   --serif:"Times New Roman",Times,Georgia,serif; --sans:Arial,Helvetica,"Helvetica Neue",sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#1D1B19; --panel:#2A2724; --ink:#F2F0ED; --ink2:#B8A898; --line:#3F3A35; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#4A3F2C; --band:#141312; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#3A3530;
+  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#2E2E2E;
   --ok:#9CC8A6; --ok-bg:#25352A; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E69C91; --crit-bg:#3E2623;
   color-scheme:dark } }
 :root[data-theme="dark"]{
   --bg:#1D1B19; --panel:#2A2724; --ink:#F2F0ED; --ink2:#B8A898; --line:#3F3A35; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#4A3F2C; --band:#141312; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#3A3530;
+  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FBFBFD; --on-band-2:#B8A898; --band-line:#2E2E2E;
   --ok:#9CC8A6; --ok-bg:#25352A; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E69C91; --crit-bg:#3E2623;
   color-scheme:dark }
 
@@ -324,6 +324,7 @@ table.recap tr.forte td{font-weight:700;background:var(--panel)}
 table.recap tr.forte td:first-child{padding-left:10px}
 .pos{color:var(--ok)}
 section > h4{padding-bottom:2px}
+.interno{border:1px dashed var(--sand);padding:18px}
 </style>
 
 </head>
@@ -907,7 +908,8 @@ function vOggi(){
   var peso = { alto:3, medio:2, basso:1, alta:3, media:2, bassa:1 };
   var caldi = S.rischi.filter(function(r){ return r.stato === 'aperto'; })
     .sort(function(a, b){ return (peso[b.impatto] || 0) * (peso[b.prob] || 0) - (peso[a.impatto] || 0) * (peso[a.prob] || 0); }).slice(0, 3);
-  var ultimo = S.diario[0];
+  var ultimi = S.diario.slice(0, 3);
+  var tappe = S.fasi.filter(function(f){ return f.stato !== 'fatto' && (f.inizio || f.fine); }).slice(0, 4);
   var qs = ps.length ? (Number(ps[0].quota) || 50) / 100 : 1;
   var roi = p.costo ? p.atteso / p.costo : 0, roiPiano = p.tot ? p.piano / p.tot : 0;
   var utileProp = p.atteso * (1 - q), utilePropPiano = p.piano * (1 - q);
@@ -963,23 +965,33 @@ function vOggi(){
 
     h('div', { class:'cols' },
       h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'Da fare ora'), h('button', { class:'link', type:'button', onclick:function(){ vai('piano'); } }, 'Piano')),
+        h('div', { class:'panel-head' }, h('h3', {}, 'Prossimi passi'), h('button', { class:'link', type:'button', onclick:function(){ vai('piano'); } }, 'Piano')),
         attese.map(rigaDecisione),
         S.canEdit ? h('div', {}, h('button', { class:'link', type:'button', onclick:function(){ editDecisione(); } }, 'Aggiungi una decisione da approvare')) : null,
-        scadenze.length ? scadenze.map(function(a){
+        tappe.map(function(f){
+          return h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(f.stato === 'in-corso' ? f.fine : f.inizio)),
+            h('span', { class:'what' }, f.titolo), f.stato === 'in-corso' ? pill('gold', 'In corso') : null);
+        }),
+        !attese.length && !tappe.length ? h('p', { class:'muted' }, 'Niente in sospeso.') : null),
+      h('div', { class:'panel' },
+        h('div', { class:'panel-head' }, h('h3', {}, 'Ultimi aggiornamenti'), h('button', { class:'link', type:'button', onclick:function(){ vai('diario'); } }, 'Tutti')),
+        ultimi.length ? ultimi.map(function(u){
+          return h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(u.data)), h('span', { class:'what' }, h('strong', {}, u.titolo), u.testo ? h('span', { class:'small muted' }, ' · ' + String(u.testo).split('\n')[0]) : null));
+        }) : h('p', { class:'muted' }, 'Il primo aggiornamento arriverà a breve.'))),
+
+    S.canEdit ? h('section', { class:'interno' },
+      h('div', { class:'sec-head' }, h('div', {}, h('h4', {}, 'Solo per te · non visibile alle Proprietarie'), h('h2', {}, 'Le tue scadenze e i punti da presidiare')),
+        h('button', { class:'link', type:'button', onclick:function(){ S.aperti['s-ris'] = true; vai('scheda'); } }, 'Note interne')),
+      h('div', { class:'cols' },
+        h('div', { class:'stack' }, scadenze.length ? scadenze.map(function(a){
           return h('div', { class:'mini' }, h('span', { class:'when' + (a.scadenza < og ? ' neg' : '') }, dataCorta(a.scadenza)),
             h('span', { class:'what' }, a.titolo, a.chi ? h('span', { class:'small muted' }, ' · ' + a.chi) : null),
             a.scadenza < og ? pill('crit', 'Scaduta') : null);
-        }) : (attese.length ? null : h('p', { class:'muted' }, 'Niente in sospeso.'))),
-      h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'Punti di attenzione'), h('button', { class:'link', type:'button', onclick:function(){ S.aperti['s-ris'] = true; vai('scheda'); } }, 'Rischi')),
-        caldi.length ? caldi.map(function(r){
+        }) : h('p', { class:'muted' }, 'Nessuna attività aperta con scadenza.')),
+        h('div', { class:'stack' }, caldi.length ? caldi.map(function(r){
           return h('div', { class:'mini' }, h('span', { class:'what' }, h('strong', {}, r.titolo), r.descr ? h('span', { class:'small muted' }, ' · ' + r.descr) : null),
             pill(r.impatto === 'alto' ? 'crit' : 'warn', 'Impatto ' + (r.impatto || '–')));
-        }) : h('p', { class:'muted' }, 'Nessun rischio aperto.'),
-        h('div', { class:'panel-head', style:'margin-top:8px' }, h('h3', {}, 'Ultimo aggiornamento'), h('button', { class:'link', type:'button', onclick:function(){ vai('diario'); } }, 'Tutti')),
-        ultimo ? h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(ultimo.data)), h('span', { class:'what' }, h('strong', {}, ultimo.titolo), ultimo.testo ? h('span', { class:'small muted' }, ' · ' + String(ultimo.testo).split('\n')[0]) : null))
-               : h('p', { class:'muted' }, 'Nessun aggiornamento pubblicato.')))
+        }) : h('p', { class:'muted' }, 'Nessun punto aperto.')))) : null
   ];
 }
 
@@ -1006,7 +1018,7 @@ function vLavori(){
     h('section', {},
       h('h2', {}, 'Lavorazioni'),
       S.lavori.length ? h('div', {}, S.lavori.map(function(l){
-        var a = Number(l.avanzamento) || 0, tardi = l.fine && l.fine < og && l.stato !== 'fatto';
+        var a = Number(l.avanzamento) || 0, tardi = S.canEdit && l.fine && l.fine < og && l.stato !== 'fatto';
         return h('div', { class:'lav' },
           h('div', { class:'what' }, h('strong', {}, l.titolo), h('span', { class:'small muted' }, l.impresa || 'Impresa da assegnare'), l.nota ? h('span', { class:'small' }, l.nota) : null),
           h('span', { class:'small ' + (tardi ? 'neg' : 'muted') }, l.inizio ? dataCorta(l.inizio) + ' → ' + dataCorta(l.fine || l.inizio) : ''),
@@ -1018,7 +1030,7 @@ function vLavori(){
       h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Preparazione del cantiere'), h('p', { class:'muted small' }, prep.filter(isFatto).length + ' di ' + prep.length + ' attività completate')),
         h('button', { class:'link', type:'button', onclick:function(){ vai('piano'); } }, 'Vai al piano')),
       h('div', { class:'panel' }, prep.map(function(a){
-        return h('div', { class:'mini' }, h('span', { class:'when' + (a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, dataCorta(a.scadenza)),
+        return h('div', { class:'mini' }, h('span', { class:'when' + (S.canEdit && a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, dataCorta(a.scadenza)),
           h('span', { class:'what' }, a.titolo, a.chi ? h('span', { class:'small muted' }, ' · ' + a.chi) : null), pillStato(a.stato));
       }))) : null,
     h('section', {},
@@ -1045,7 +1057,7 @@ function vScheda(){
       h('div', { class:'intro-side' }, S.canEdit ? btn('Modifica dati', editOp, 'ghost') : null)),
     h('div', {},
       acc('s-eco', 'Piano economico', [S.canEdit ? h('div', {}, btn('Aggiungi voce di costo', function(){ editVoce(); }, 'ghost')) : null].concat(vEconomico().slice(1)), true),
-      acc('s-ris', 'Rischi e presìdi', [S.canEdit ? h('div', {}, btn('Aggiungi rischio', function(){ editRischio(); }, 'ghost')) : null].concat(vRischi().slice(1))),
+      S.canEdit ? acc('s-ris', 'Note interne · punti da presidiare (non visibili alle Proprietarie)', [h('div', {}, btn('Aggiungi punto', function(){ editRischio(); }, 'ghost'))].concat(vRischi().slice(1))) : null,
       acc('s-strut', 'Struttura e regole dell’incarico', [h('div', { class:'stack' }, h('h3', {}, 'Ripartizione dell’utile previsto'), ripartizione())].concat(vStruttura().slice(1))),
       acc('s-imm', 'Immobile e condizioni di acquisto', vImmobile().slice(1)))
   ];
@@ -1169,7 +1181,7 @@ function vEconomico(){
             return h('td', { class: dc === 0 && dp === 0 ? 'here' : v < base ? 'lo' : 'hi', title:'Margine ' + eur0(r - costi) }, pct(v));
           }));
         }))) : null,
-    (op.assunzioni || []).length ? h('section', {}, h('h2', {}, 'Assunzioni e punti da confermare'), scheda(op.assunzioni)) : null
+    (op.assunzioni || []).length ? h('section', {}, h('h2', {}, 'Assunzioni del business plan'), scheda(op.assunzioni)) : null
   ];
 }
 
@@ -1234,7 +1246,7 @@ function vPiano(){
               a.stato === 'fatto' ? 'Fatto' : a.stato === 'in-corso' ? 'In corso' : 'Da fare') : pillStato(a.stato),
             h('span', { class:'tt' }, a.titolo, a.nota ? h('span', { class:'small muted' }, ' — ' + a.nota) : null),
             h('span', { class:'chi' }, a.chi || ''),
-            h('span', { class:'when' + (a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, a.scadenza ? data(a.scadenza) : ''),
+            h('span', { class:'when' + (S.canEdit && a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, a.scadenza ? data(a.scadenza) : ''),
             modifica(function(){ editAzione(a); }) || h('span', {}));
         }), S.canEdit ? h('div', { class:'task' }, h('button', { class:'link', type:'button', style:'grid-column:1 / -1;text-align:left', onclick:function(){ editAzione(null, f.id); } }, 'Aggiungi attività')) : null));
     }) : vuoto('Nessuna fase inserita.', btn('Aggiungi la prima fase', function(){ editFase(); }))
@@ -1367,7 +1379,7 @@ function vRischi(){
           h('div', { class:'tags' }, pill(liv[r.prob] || 'neutral', 'Probabilità ' + (r.prob || '–')), pill(liv[r.impatto] || 'neutral', 'Impatto ' + (r.impatto || '–')))),
         h('div', { class:'rk' }, h('h4', {}, 'Come lo gestiamo'), h('p', {}, r.mitigazione || ''), r.chi ? h('p', { class:'small muted' }, 'Responsabile: ' + r.chi) : null),
         h('div', { class:'tags', style:'align-content:start;justify-content:flex-end' }, pill(s[0], s[1]), modifica(function(){ editRischio(r); })));
-    })) : vuoto('Nessun rischio registrato.', btn('Aggiungi il primo rischio', function(){ editRischio(); }))
+    })) : vuoto('Nessun punto registrato.', btn('Aggiungi il primo punto', function(){ editRischio(); }))
   ];
 }
 
