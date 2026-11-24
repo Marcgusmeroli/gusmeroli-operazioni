@@ -36,13 +36,13 @@ var stile = el('style', {},
   '#accesso form{display:flex;flex-direction:column;gap:12px}' +
   '#accesso label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-band-2);display:flex;flex-direction:column;gap:6px}' +
   '#accesso input{font:inherit;font-size:16px;letter-spacing:0;text-transform:none;padding:11px 12px;border:1px solid var(--band-line);background:transparent;color:var(--on-band);border-radius:2px}' +
-  '#accesso button{font:inherit;padding:12px 16px;border:1px solid var(--gold-fill);background:var(--gold-fill);color:#0B1626;cursor:pointer;border-radius:2px}' +
+  '#accesso button{font:inherit;padding:12px 16px;border:1px solid var(--gold-fill);background:var(--gold-fill);color:#141210;cursor:pointer;border-radius:2px}' +
   '#accesso button.piano{background:transparent;color:var(--on-band);border-color:var(--band-line)}' +
   '#accesso button[disabled]{opacity:.6;cursor:default}' +
   '#accesso .msg{min-height:1.4em;color:#E69C91}' +
   '.chi{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--on-band-2);flex-wrap:wrap}' +
   '.chi select,.chi button{font:inherit;font-size:12px;background:transparent;color:var(--on-band);border:1px solid var(--band-line);padding:4px 8px;border-radius:2px;cursor:pointer}' +
-  '.chi select option{color:#0F2540}' +
+  '.chi select option{color:#1F1C19}' +
   'footer .esci{font:inherit;background:none;border:0;padding:0;color:var(--ink2);text-decoration:underline;cursor:pointer}');
 document.head.appendChild(stile);
 

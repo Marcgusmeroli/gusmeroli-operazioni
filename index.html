@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0F2540">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,20 +18,20 @@
 <style>
 /* Layout: fascia scura col logo e le sezioni in alto, sotto una colonna unica larga 1120px; le cifre in Times, tutto il resto in Arial, come nei manuali Gusmeroli. */
 :root{
-  --bg:#FAF8F4; --panel:#EEF0F3; --ink:#0F2540; --ink2:#55606E; --line:#DCE0E6; --sand:#A9B2BE;
-  --gold:#7D683C; --gold-fill:#9C8452; --gold-soft:#EDE6D6; --band:#0F2540; --on-band:#FAF8F4; --on-band-2:#B4BECC; --band-line:#243A57;
-  --ok:#2F6B4F; --ok-bg:#E2EDE6; --warn:#8A5A12; --warn-bg:#F3E7CF; --crit:#8C2F2F; --crit-bg:#F2DEDC;
+  --bg:#FAF8F4; --panel:#F1EDE6; --ink:#1F1C19; --ink2:#5E564E; --line:#E3DDD3; --sand:#B8A898;
+  --gold:#7D6436; --gold-fill:#A8894F; --gold-soft:#EADFCB; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --ok:#2F6B4F; --ok-bg:#E4ECE3; --warn:#8A5A12; --warn-bg:#F3E7CF; --crit:#8C2F2F; --crit-bg:#F2DEDC;
   --serif:"Times New Roman",Times,Georgia,serif; --sans:"Times New Roman",Times,Georgia,serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0B1626; --panel:#14233A; --ink:#EEF0F3; --ink2:#A9B5C4; --line:#26384F; --sand:#6F7E91;
-  --gold:#CDB57E; --gold-fill:#9C8452; --gold-soft:#3B3524; --band:#081220; --on-band:#FAF8F4; --on-band-2:#A9B5C4; --band-line:#1C2E47;
-  --ok:#8FC7A6; --ok-bg:#16332A; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
+  --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
+  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
   color-scheme:dark } }
 :root[data-theme="dark"]{
-  --bg:#0B1626; --panel:#14233A; --ink:#EEF0F3; --ink2:#A9B5C4; --line:#26384F; --sand:#6F7E91;
-  --gold:#CDB57E; --gold-fill:#9C8452; --gold-soft:#3B3524; --band:#081220; --on-band:#FAF8F4; --on-band-2:#A9B5C4; --band-line:#1C2E47;
-  --ok:#8FC7A6; --ok-bg:#16332A; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
+  --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
+  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#000000; --on-band:#FAF8F4; --on-band-2:#B8A898; --band-line:#2E2B28;
+  --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
   color-scheme:dark }
 
 *{box-sizing:border-box}
@@ -122,7 +122,7 @@ a{color:var(--gold);text-underline-offset:3px}
 .split-bar div{display:flex;align-items:center;padding-inline:12px;font-family:var(--serif);font-size:18px;font-variant-numeric:tabular-nums;min-width:0;white-space:nowrap;overflow:hidden}
 .split-bar .inv{background:var(--ink);color:var(--bg)}
 .split-bar .inv2{background:var(--ink2);color:var(--bg)}
-.split-bar .ges{background:var(--gold-fill);color:#0B1626}
+.split-bar .ges{background:var(--gold-fill);color:#141210}
 .split-labels{display:grid;gap:2px;font-size:13px;color:var(--ink2)}
 .split-labels span{min-width:0}
 
@@ -259,7 +259,7 @@ td .bar{width:90px;margin-left:auto}
 footer{border-top:1px solid var(--line);padding-block:20px 8px;font-size:12px;color:var(--ink2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 dialog{background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:0;width:min(580px,calc(100% - 32px));max-height:calc(100% - 32px)}
-dialog::backdrop{background:rgba(8,18,32,.65)}
+dialog::backdrop{background:rgba(15,13,11,.65)}
 .form{display:flex;flex-direction:column;gap:16px;padding:24px}
 .form h2{font-size:24px}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -454,8 +454,8 @@ details.cartella.sotto > summary .nome{font-weight:400}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=963769fd54bc"></script>
-<script src="archivio.js?v=963769fd54bc"></script>
+<script src="config.js?v=67bb1d99546c"></script>
+<script src="archivio.js?v=67bb1d99546c"></script>
 <script>
 (function(){
 'use strict';
@@ -1670,7 +1670,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '963769fd54bc';
+  var V = '67bb1d99546c';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
