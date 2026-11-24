@@ -317,6 +317,13 @@ details.fase-blk:not([open]){padding-bottom:16px}
   .lav .what,.lav .prog{grid-column:1 / -1}
 }
 @media (max-width:440px){ .tiles{grid-template-columns:minmax(0,1fr)} }
+table.recap{min-width:520px}
+table.recap td{padding-block:12px}
+table.recap td.num{font-size:18px}
+table.recap tr.forte td{font-weight:700;background:var(--panel)}
+table.recap tr.forte td:first-child{padding-left:10px}
+.pos{color:var(--ok)}
+section > h4{padding-bottom:2px}
 </style>
 
 </head>
@@ -350,7 +357,7 @@ details.fase-blk:not([open]){padding-bottom:16px}
 'use strict';
 
 var OP_ID = 'friuli-8';
-var VIEWS = [['oggi','Oggi'],['lavori','Lavori'],['cassa','Conti'],['piano','Piano'],['diario','Aggiornamenti'],['documenti','Documenti'],['scheda','Scheda operazione']];
+var VIEWS = [['oggi','Oggi'],['cassa','Conti'],['lavori','Lavori'],['piano','Piano'],['diario','Aggiornamenti'],['documenti','Documenti'],['scheda','Scheda']];
 var STATI_OP = ['In acquisizione','Rogito fatto','Cantiere','In vendita','Venduta','Chiusa'];
 var CATEGORIE = ['Acquisto','Contratto e società','Piano economico','Progetto','Cantiere','Vendita','Altro'];
 var STATI = [['da-fare','Da fare'],['in-corso','In corso'],['fatto','Fatto']];
@@ -886,21 +893,33 @@ function rigaDecisione(d){
     h('div', { class:'tags' }, ps.map(function(p){
       var r = ((d.risposte || {})[p.id]) || 'attesa';
       return pill(kind[r] || 'warn', p.nome.replace(/ S\.R\.L\.$/i, '') + ': ' + etichetta(STATI_D, r).toLowerCase());
-    })),
-    h('div', { class:'side' }, d.scadenza ? h('span', { class:'small ' + (d.stato === 'attesa' && d.scadenza < oggi() ? 'neg' : 'muted') }, 'entro il ' + data(d.scadenza)) : null, modifica(function(){ editDecisione(d); })));
+    }), d.scadenza ? h('span', { class:'small ' + (d.stato === 'attesa' && d.scadenza < oggi() ? 'neg' : 'muted') }, 'entro il ' + data(d.scadenza)) : null,
+      modifica(function(){ editDecisione(d); })));
 }
 function vOggi(){
-  var op = S.op, p = previsione(), c = p.c, og = oggi();
+  var op = S.op, p = previsione(), c = p.c, og = oggi(), q = quota(), ps = parti(), mesi = Number(op.durataMesi) || 6;
   var cur = faseAttuale(), iCur = cur ? S.fasi.indexOf(cur) + 1 : S.fasi.length;
   var tappa = S.fasi.filter(function(f){ return f.stato === 'da-fare' && f.inizio && f.inizio >= og; })[0];
   var pross = S.cassa.filter(function(t){ return t.stato !== 'versato' && t.data && t.data >= og; }).sort(function(a, b){ return a.data.localeCompare(b.data); })[0];
   var attese = S.decisioni.filter(function(d){ return d.stato === 'attesa'; });
-  var scadenze = S.azioni.filter(function(a){ return a.stato !== 'fatto' && a.scadenza; }).sort(function(a, b){ return a.scadenza.localeCompare(b.scadenza); }).slice(0, 5);
-  var av = avanzLavori(), inCorso = S.lavori.filter(function(l){ return l.stato === 'in-corso'; });
-  var fc = S.fasi.filter(function(f){ return f.id === (op.faseCantiere || 'f06'); })[0];
-  var caldi = S.rischi.filter(function(r){ return r.stato !== 'chiuso' && (r.prob === 'alta' || r.impatto === 'alto'); }).slice(0, 3);
-  var ultimo = S.diario[0], un = op.unita || [];
-  var kindU = { progetto:'neutral', vendita:'gold', proposta:'warn', preliminare:'warn', venduta:'ok' };
+  var scadenze = S.azioni.filter(function(a){ return a.stato !== 'fatto' && a.scadenza; }).sort(function(a, b){ return a.scadenza.localeCompare(b.scadenza); }).slice(0, 4);
+  var av = avanzLavori(), fc = S.fasi.filter(function(f){ return f.id === (op.faseCantiere || 'f06'); })[0];
+  var peso = { alto:3, medio:2, basso:1, alta:3, media:2, bassa:1 };
+  var caldi = S.rischi.filter(function(r){ return r.stato === 'aperto'; })
+    .sort(function(a, b){ return (peso[b.impatto] || 0) * (peso[b.prob] || 0) - (peso[a.impatto] || 0) * (peso[a.prob] || 0); }).slice(0, 3);
+  var ultimo = S.diario[0];
+  var qs = ps.length ? (Number(ps[0].quota) || 50) / 100 : 1;
+  var roi = p.costo ? p.atteso / p.costo : 0, roiPiano = p.tot ? p.piano / p.tot : 0;
+  var utileProp = p.atteso * (1 - q), utilePropPiano = p.piano * (1 - q);
+  function big(l, v, n){ return h('div', { class:'fig' }, h('span', { class:'l' }, l), h('span', { class:'v' }, v), n ? h('span', { class:'n' }, n) : null); }
+  function delta(d, sfavorevoleSePositivo, comePunti){
+    if (Math.abs(d) < (comePunti ? 0.0005 : 1)) return h('td', { class:'num muted' }, '–');
+    var male = sfavorevoleSePositivo ? d > 0 : d < 0;
+    return h('td', { class:'num ' + (male ? 'neg' : 'pos') }, (d > 0 ? '+ ' : '− ') + (comePunti ? (Math.abs(d) * 100).toLocaleString('it-IT', { maximumFractionDigits:1 }) + ' punti' : eur0(Math.abs(d))));
+  }
+  function riga(voce, piano, oggi_, d, forte){
+    return h('tr', { class: forte ? 'forte' : '' }, h('td', {}, voce), h('td', { class:'num' }, piano), h('td', { class:'num' }, oggi_), d);
+  }
   return [
     h('section', { class:'intro' },
       h('div', { class:'intro-text' },
@@ -908,50 +927,59 @@ function vOggi(){
         h('h1', { class:'compact' }, op.nome),
         h('p', { class:'live' }, h('i', {}), 'Dati in tempo reale', quando() ? ' · ' + quando() : '')),
       h('div', { class:'intro-side' }, op.stato ? pill('gold', op.stato) : null, S.canEdit ? btn('Modifica dati', editOp, 'ghost') : null)),
+
+    h('div', { class:'figures', role:'group', 'aria-label':'Numeri dell’operazione' },
+      big('Capitale complessivo', eur0(p.costo), 'versato finora ' + eur0(c.versato)),
+      big('Ricavi attesi', eur0(p.ric), p.vendute + ' di ' + p.unita + ' unità vendute'),
+      big('Margine atteso', eur0(p.atteso), scost(p.delta)),
+      big('ROI sul capitale', pct(roi), pct(roi * 12 / mesi) + ' su base annua, in ' + mesi + ' mesi')),
+
+    ps.length ? h('section', {},
+      h('h4', {}, 'Per ciascuna società proprietaria · quota ' + Math.round(qs * 100) + '%'),
+      h('div', { class:'tiles' },
+        tile('Capitale da impegnare', eur0(p.costo * qs), ps.map(function(x){ return x.nome.replace(/ S\.R\.L\.$/i, '') + ' ' + eur0(c.perSoc[x.id] || 0); }).join(' · ') + ' versati'),
+        tile('Utile atteso', eur0(utileProp * qs), 'dopo il compenso di gestione del ' + Math.round(q * 100) + '%'),
+        tile('Rendimento atteso', pct(p.costo ? utileProp / p.costo : 0), pct(p.costo ? utileProp / p.costo * 12 / mesi : 0) + ' su base annua'),
+        tile('Rientro previsto', op.dataVenditaPrevista ? data(op.dataVenditaPrevista) : '–', 'capitale più utile: ' + eur0((p.costo + utileProp) * qs)))) : null,
+
+    h('section', {},
+      h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Piano e andamento')), h('button', { class:'link', type:'button', onclick:function(){ vai('cassa'); } }, 'Conti')),
+      tabella('recap', [th('Voce'), th('Piano'), th('Oggi'), th('Scostamento')], [
+        riga('Costi complessivi', eur0(p.tot), eur0(p.costo), delta(p.costo - p.tot, true)),
+        riga('Ricavi di vendita', eur0(op.rivendita), eur0(p.ric), delta(p.ric - (Number(op.rivendita) || 0))),
+        riga('Margine dell’operazione', eur0(p.piano), eur0(p.atteso), delta(p.delta), true),
+        riga('ROI sul capitale', pct(roiPiano), pct(roi), delta(roi - roiPiano, false, true)),
+        riga('Utile alle Proprietarie · ' + Math.round((1 - q) * 100) + '%', eur0(utilePropPiano), eur0(utileProp), delta(utileProp - utilePropPiano)),
+        riga('Compenso di gestione · ' + Math.round(q * 100) + '%, oltre IVA', eur0(p.piano * q), eur0(p.atteso * q), delta((p.atteso - p.piano) * q))
+      ]),
+      h('p', { class:'small muted' }, '«Oggi» parte dal piano e lo corregge con le spese registrate e con i prezzi di vendita concordati.')),
+
     h('div', { class:'tiles' },
-      tile('Fase attuale', cur ? iCur + ' di ' + S.fasi.length : 'Conclusa', cur ? cur.titolo : 'Operazione chiusa',
+      tile('Fase', cur ? iCur + ' di ' + S.fasi.length : 'Conclusa', cur ? cur.titolo : 'Operazione chiusa',
         h('div', { class:'steps', role:'img', 'aria-label':'Fase ' + iCur + ' di ' + S.fasi.length }, S.fasi.map(function(f){ return h('span', { class:f.stato, title:f.titolo }); }))),
       tile('Prossima tappa', tappa ? data(tappa.inizio) : '–', tappa ? tappa.titolo + ' · ' + tra(tappa.inizio) : 'Nessuna tappa pianificata'),
-      tile('Capitale versato', eur0(c.versato), 'su ' + eur0(p.tot) + (pross ? ' · prossima uscita ' + eur0(pross.importo) + ' il ' + data(pross.data) : ''), barra(p.tot ? c.versato / p.tot * 100 : 0)),
-      tile('Margine atteso', eur0(p.atteso), 'ROI ' + pct(p.costo ? p.atteso / p.costo : 0) + ' · ' + scost(p.delta))),
+      tile('Prossima uscita', pross ? eur0(pross.importo) : '–', pross ? pross.titolo + ' · ' + data(pross.data) + (ps.length ? ' · ' + eur0(pross.importo * qs) + ' per società' : '') : 'Nessuna uscita in calendario'),
+      tile('Lavori', Math.round(av) + '%', av > 0 ? S.lavori.filter(isFatto).length + ' di ' + S.lavori.length + ' lavorazioni concluse' : 'Cantiere dal ' + (fc && fc.inizio ? data(fc.inizio) : 'rogito'), barra(av))),
+
     h('div', { class:'cols' },
       h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'In attesa delle Proprietarie'), S.canEdit ? h('button', { class:'link', type:'button', onclick:function(){ editDecisione(); } }, 'Aggiungi') : null),
-        attese.length ? attese.map(rigaDecisione) : h('p', { class:'muted' }, 'Nessuna decisione in attesa.'),
-        h('p', { class:'small muted' }, 'Le approvazioni avvengono per iscritto, via PEC o email: qui ne resta traccia.')),
-      h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'Prossime scadenze'), h('button', { class:'link', type:'button', onclick:function(){ vai('piano'); } }, 'Piano completo')),
+        h('div', { class:'panel-head' }, h('h3', {}, 'Da fare ora'), h('button', { class:'link', type:'button', onclick:function(){ vai('piano'); } }, 'Piano')),
+        attese.map(rigaDecisione),
+        S.canEdit ? h('div', {}, h('button', { class:'link', type:'button', onclick:function(){ editDecisione(); } }, 'Aggiungi una decisione da approvare')) : null,
         scadenze.length ? scadenze.map(function(a){
           return h('div', { class:'mini' }, h('span', { class:'when' + (a.scadenza < og ? ' neg' : '') }, dataCorta(a.scadenza)),
             h('span', { class:'what' }, a.titolo, a.chi ? h('span', { class:'small muted' }, ' · ' + a.chi) : null),
-            a.scadenza < og ? pill('crit', 'Scaduta') : a.stato === 'in-corso' ? pill('gold', 'In corso') : null);
-        }) : h('p', { class:'muted' }, 'Nessuna attività aperta con scadenza.'))),
-    h('div', { class:'cols' },
+            a.scadenza < og ? pill('crit', 'Scaduta') : null);
+        }) : (attese.length ? null : h('p', { class:'muted' }, 'Niente in sospeso.'))),
       h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'Lavori'), h('button', { class:'link', type:'button', onclick:function(){ vai('lavori'); } }, 'Cantiere')),
-        h('div', { class:'prog' }, h('span', { class:'num big' }, Math.round(av) + '%'), barra(av)),
-        inCorso.length ? inCorso.slice(0, 3).map(function(l){
-          return h('div', { class:'mini' }, h('span', { class:'what' }, l.titolo, l.impresa ? h('span', { class:'small muted' }, ' · ' + l.impresa) : null), h('span', { class:'num' }, (Number(l.avanzamento) || 0) + '%'));
-        }) : h('p', { class:'muted' }, av >= 100 ? 'Lavori conclusi.' : av > 0 ? 'Nessuna lavorazione in corso in questo momento.' :
-          'Cantiere non ancora aperto' + (fc && fc.inizio ? ': apertura prevista il ' + data(fc.inizio) + ', ' + tra(fc.inizio) + '.' : '.'))),
-      h('div', { class:'panel' },
-        h('div', { class:'panel-head' }, h('h3', {}, 'Vendite'), h('span', { class:'small muted' }, p.vendute + ' di ' + p.unita + ' unità vendute')),
-        un.length ? un.map(function(u, i){
-          var st = u.stato || 'progetto';
-          return h('div', { class:'mini' }, h('span', { class:'what' }, u.nome, h('span', { class:'small muted' }, ' · ' + u.mq + ' m² · obiettivo ' + eur0(u.prezzo))),
-            u.prezzoVendita && st !== 'progetto' && st !== 'vendita' ? h('span', { class:'num' }, eur0(u.prezzoVendita)) : null,
-            pill(kindU[st] || 'neutral', etichetta(STATI_U, st)), modifica(function(){ editUnita(i); }));
-        }) : h('p', { class:'muted' }, 'Unità non ancora definite.'),
-        h('p', { class:'small muted' }, 'Ricavi attesi ' + eur0(p.ric) + ' · costo finale previsto ' + eur0(p.costo) + '.'))),
-    caldi.length ? h('section', {},
-      h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Punti di attenzione')), h('button', { class:'link', type:'button', onclick:function(){ S.aperti['s-ris'] = true; vai('scheda'); } }, 'Tutti i rischi')),
-      h('div', { class:'rows' }, caldi.map(function(r){
-        return h('div', { class:'row' }, h('span', { class:'when' }, r.stato === 'presidiato' ? pill('gold', 'Presidiato') : pill('warn', 'Aperto')),
-          h('div', { class:'what' }, h('strong', {}, r.titolo), h('span', { class:'small muted' }, r.mitigazione || '')), h('span', {}), h('span', {}));
-      }))) : null,
-    h('section', {},
-      h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Ultimo aggiornamento')), h('button', { class:'link', type:'button', onclick:function(){ vai('diario'); } }, 'Tutti gli aggiornamenti')),
-      ultimo ? h('div', {}, voceDiario(ultimo)) : vuoto('L’informativa settimanale su lavori, spese, scostamenti e vendite comparirà qui, con le foto.', btn('Scrivi il primo aggiornamento', function(){ editDiario(); })))
+        h('div', { class:'panel-head' }, h('h3', {}, 'Punti di attenzione'), h('button', { class:'link', type:'button', onclick:function(){ S.aperti['s-ris'] = true; vai('scheda'); } }, 'Rischi')),
+        caldi.length ? caldi.map(function(r){
+          return h('div', { class:'mini' }, h('span', { class:'what' }, h('strong', {}, r.titolo), r.descr ? h('span', { class:'small muted' }, ' · ' + r.descr) : null),
+            pill(r.impatto === 'alto' ? 'crit' : 'warn', 'Impatto ' + (r.impatto || '–')));
+        }) : h('p', { class:'muted' }, 'Nessun rischio aperto.'),
+        h('div', { class:'panel-head', style:'margin-top:8px' }, h('h3', {}, 'Ultimo aggiornamento'), h('button', { class:'link', type:'button', onclick:function(){ vai('diario'); } }, 'Tutti')),
+        ultimo ? h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(ultimo.data)), h('span', { class:'what' }, h('strong', {}, ultimo.titolo), ultimo.testo ? h('span', { class:'small muted' }, ' · ' + String(ultimo.testo).split('\n')[0]) : null))
+               : h('p', { class:'muted' }, 'Nessun aggiornamento pubblicato.')))
   ];
 }
 
@@ -967,7 +995,7 @@ function vLavori(){
   S.lavori.forEach(function(l){ if (l.fine && l.fine > fine) fine = l.fine; });
   var aperto = S.lavori.some(function(l){ return (Number(l.avanzamento) || 0) > 0; });
   var og = oggi();
-  return [
+  var pz = [
     testa('Lavori', op.lavoriNota, btn('Aggiungi lavorazione', function(){ editLavoro(); })),
     h('div', { class:'tiles' },
       tile('Avanzamento del cantiere', Math.round(av) + '%', aperto ? S.lavori.filter(isFatto).length + ' di ' + S.lavori.length + ' lavorazioni concluse' : 'Cantiere non ancora aperto', barra(av)),
@@ -997,6 +1025,7 @@ function vLavori(){
       h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Foto del cantiere')), S.canEdit ? btn('Aggiungi foto', function(){ editDiario(); }, 'ghost') : null),
       foto.length ? griglia(foto.slice(0, 24), 'cantiere') : h('p', { class:'muted' }, 'Le foto dello stato iniziale e dell’avanzamento compariranno qui, caricate con gli aggiornamenti.'))
   ];
+  return [pz[0], pz[1], pz[2], pz[4], pz[3] ? acc('l-prep', 'Preparazione del cantiere · ' + prep.filter(isFatto).length + ' di ' + prep.length + ' attività', [pz[3]]) : null];
 }
 
 /* ---------- Scheda dell'operazione ---------- */
@@ -1015,11 +1044,10 @@ function vScheda(){
       h('div', { class:'intro-text' }, h('p', { class:'eyebrow' }, 'Scheda dell’operazione'), h('h1', { class:'compact' }, op.nome), op.descrizione ? h('p', { class:'lede' }, op.descrizione) : null),
       h('div', { class:'intro-side' }, S.canEdit ? btn('Modifica dati', editOp, 'ghost') : null)),
     h('div', {},
-      acc('s-strut', 'Struttura e regole dell’incarico', vStruttura().slice(1), true),
-      acc('s-imm', 'Immobile e condizioni di acquisto', vImmobile().slice(1)),
-      acc('s-eco', 'Piano economico', [h('div', { class:'stack' }, h('h3', {}, 'Ripartizione dell’utile previsto'), ripartizione()),
-        S.canEdit ? h('div', {}, btn('Aggiungi voce di costo', function(){ editVoce(); }, 'ghost')) : null].concat(vEconomico().slice(1))),
-      acc('s-ris', 'Rischi e presìdi', [S.canEdit ? h('div', {}, btn('Aggiungi rischio', function(){ editRischio(); }, 'ghost')) : null].concat(vRischi().slice(1))))
+      acc('s-eco', 'Piano economico', [S.canEdit ? h('div', {}, btn('Aggiungi voce di costo', function(){ editVoce(); }, 'ghost')) : null].concat(vEconomico().slice(1)), true),
+      acc('s-ris', 'Rischi e presìdi', [S.canEdit ? h('div', {}, btn('Aggiungi rischio', function(){ editRischio(); }, 'ghost')) : null].concat(vRischi().slice(1))),
+      acc('s-strut', 'Struttura e regole dell’incarico', [h('div', { class:'stack' }, h('h3', {}, 'Ripartizione dell’utile previsto'), ripartizione())].concat(vStruttura().slice(1))),
+      acc('s-imm', 'Immobile e condizioni di acquisto', vImmobile().slice(1)))
   ];
 }
 
@@ -1276,7 +1304,7 @@ function vCassa(){
     return m.tipo !== 'versamento' && (S.filtro === 'pagato' ? m.stato === 'pagato' : m.stato !== 'pagato');
   });
   var stT = { previsto:['neutral','Previsto'], richiamato:['warn','Richiesto'], versato:['ok','Versato'] };
-  return [
+  var pz = [
     cruscottoConti(),
     testa('Piano di assorbimento del capitale', S.op.cassaNota, btn('Aggiungi uscita', function(){ editTranche(); }, 'ghost')),
     graficoCapitale(),
@@ -1323,6 +1351,7 @@ function vCassa(){
       })) : vuoto(S.mov.length ? 'Nessun movimento con questo filtro.' : 'Nessun movimento registrato finora. Fatture, pagamenti e versamenti di capitale compariranno qui, ognuno con il suo allegato.',
         S.mov.length ? null : btn('Registra il primo movimento', function(){ editCosto(); })))
   ];
+  return [pz[0], pz[5], pz[7], h('div', {}, acc('c-budget', 'Dettaglio per voce di costo', [pz[6]]), acc('c-piano', 'Calendario delle uscite', [pz[1], pz[2], pz[3], pz[4]]))];
 }
 
 /* ---------- Rischi ---------- */
