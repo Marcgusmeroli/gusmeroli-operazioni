@@ -325,6 +325,16 @@ table.recap tr.forte td:first-child{padding-left:10px}
 .pos{color:var(--ok)}
 section > h4{padding-bottom:2px}
 .interno{border:1px dashed var(--sand);padding:18px}
+details.cartella{border-top:1px solid var(--line)}
+details.cartella:last-child{border-bottom:1px solid var(--line)}
+details.cartella > summary{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:12px;padding:14px 0}
+details.cartella > summary::-webkit-details-marker{display:none}
+details.cartella > summary::before{content:"\25B8";color:var(--gold);width:14px;flex:none}
+details.cartella[open] > summary::before{content:"\25BE"}
+details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
+details.cartella.sotto > summary .nome{font-weight:400}
+.cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
+.cartella-body .row:last-child{border-bottom:0}
 </style>
 
 </head>
@@ -360,7 +370,7 @@ section > h4{padding-bottom:2px}
 var OP_ID = 'friuli-8';
 var VIEWS = [['oggi','Oggi'],['cassa','Conti'],['lavori','Lavori'],['piano','Piano'],['diario','Aggiornamenti'],['documenti','Documenti'],['scheda','Scheda']];
 var STATI_OP = ['In acquisizione','Rogito fatto','Cantiere','In vendita','Venduta','Chiusa'];
-var CATEGORIE = ['Acquisto','Contratto e società','Piano economico','Progetto','Cantiere','Vendita','Altro'];
+var CATEGORIE = ['01 Acquisto','02 Business plan','03 Progetto','04 Render','05 Capitolato','06 Preventivi','07 Cantiere','08 Foto','09 Documenti per la vendita','10 Vendita','11 Società e contratto','Altro'];
 var STATI = [['da-fare','Da fare'],['in-corso','In corso'],['fatto','Fatto']];
 var S = { op: undefined, fasi: [], azioni: [], cassa: [], rischi: [], mov: [], doc: [], diario: [], lavori: [], decisioni: [], aperti: {},
           canEdit: false, db: null, assets: null, status: 'loading', slow: false, view: 'oggi', filtro: 'tutti' };
@@ -709,8 +719,9 @@ function editVersamento(m){
 function editDoc(d){
   apriForm({ titolo: d ? 'Documento' : 'Nuovo documento', valori: d || { data: oggi() }, campi: [
     { k:'titolo', label:'Titolo', obbl:true },
-    { k:'categoria', label:'Categoria', tipo:'select', opzioni:CATEGORIE, meta:true },
-    { k:'data', label:'Data', tipo:'date', meta:true },
+    { k:'categoria', label:'Cartella', tipo:'select', opzioni:CATEGORIE, meta:true },
+    { k:'sotto', label:'Sottocartella', meta:true, segnaposto:'es. 1 Proposta' },
+    { k:'data', label:'Data', tipo:'date' },
     { k:'link', label:'Link (Drive o altro)', tipo:'url', segnaposto:'https://…', aiuto:'In alternativa al file: incolla il link al documento.' },
     { k:'file', label:'File (PDF o foto)', tipo:'file' },
     { k:'nota', label:'Nota' }
@@ -1387,19 +1398,35 @@ function vRischi(){
 function vDocumenti(){
   var cats = CATEGORIE.slice();
   S.doc.forEach(function(d){ if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria); });
-  var gruppi = cats.map(function(cat){ return [cat, S.doc.filter(function(d){ return (d.categoria || 'Altro') === cat; })]; }).filter(function(g){ return g[1].length; });
+  function quanti(n){ return n + (n === 1 ? ' documento' : ' documenti'); }
+  function rigaDoc(d){
+    var url = httpUrl(d.link);
+    return h('div', { class:'row' }, h('span', { class:'when' }, data(d.data)),
+      h('div', { class:'what' }, h('strong', {}, d.titolo), d.nota ? h('span', { class:'small muted' }, d.nota) : null),
+      h('div', { class:'side' }, allegato(d.file), url ? h('a', { href:url, target:'_blank', rel:'noopener', class:'small' }, 'Apri') : null,
+        !d.file && !url ? h('span', { class:'small muted' }, 'Da caricare') : null),
+      modifica(function(){ editDoc(d); }) || h('span', {}));
+  }
+  function cartella(chiave, nome, n, corpo, sotto){
+    return accEl(chiave, false, 'cartella' + (sotto ? ' sotto' : ''), h('summary', {}, h('span', { class:'nome' }, nome), h('span', { class:'small muted' }, quanti(n))), corpo);
+  }
+  var lista = cats.map(function(cat){
+    var ds = S.doc.filter(function(d){ return (d.categoria || 'Altro') === cat; });
+    if (!ds.length) return null;
+    var sotto = [];
+    ds.forEach(function(d){ if (d.sotto && sotto.indexOf(d.sotto) < 0) sotto.push(d.sotto); });
+    sotto.sort();
+    var sciolti = ds.filter(function(d){ return !d.sotto; });
+    return cartella('d-' + cat, cat, ds.length, h('div', { class:'cartella-body' },
+      sotto.map(function(k){
+        var dk = ds.filter(function(d){ return d.sotto === k; });
+        return cartella('d-' + cat + '/' + k, k, dk.length, h('div', { class:'rows' }, dk.map(rigaDoc)), true);
+      }),
+      sciolti.length ? h('div', { class:'rows' }, sciolti.map(rigaDoc)) : null));
+  }).filter(Boolean);
   return [
-    testa('Documenti', S.op.documentiNota, btn('Aggiungi documento', function(){ editDoc(); })),
-    gruppi.length ? gruppi.map(function(g){
-      return h('div', { class:'group' }, h('h4', {}, g[0]), h('div', { class:'rows' }, g[1].map(function(d){
-        var url = httpUrl(d.link);
-        return h('div', { class:'row' }, h('span', { class:'when' }, data(d.data)),
-          h('div', { class:'what' }, h('strong', {}, d.titolo), d.nota ? h('span', { class:'small muted' }, d.nota) : null),
-          h('div', { class:'side' }, allegato(d.file), url ? h('a', { href:url, target:'_blank', rel:'noopener', class:'small' }, 'Apri il documento') : null,
-            !d.file && !url ? h('span', { class:'small muted' }, 'Da caricare') : null),
-          modifica(function(){ editDoc(d); }) || h('span', {}));
-      })));
-    }) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
+    testa('Documenti', S.doc.length ? quanti(S.doc.length) + ' in ' + lista.length + ' cartelle. Apri una cartella per vedere cosa contiene.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
+    lista.length ? h('div', {}, lista) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
   ];
 }
 
