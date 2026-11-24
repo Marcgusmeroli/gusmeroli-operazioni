@@ -363,6 +363,16 @@ details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
 details.cartella.sotto > summary .nome{font-weight:400}
 .cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
 .cartella-body .row:last-child{border-bottom:0}
+/* ---------- computer: logo e menu su una riga sola ---------- */
+@media (min-width:860px){
+  .band .wrap{display:flex;align-items:center;justify-content:space-between;gap:32px}
+  .band-top{padding-block:0;flex:none}
+  .nav{gap:4px;overflow:visible}
+  .nav button,.nav button:first-child{padding:20px 12px 17px;font-size:15px}
+}
+@media (min-width:641px) and (max-width:859px){
+  .band-top{padding-block:16px 4px}
+}
 /* ---------- telefono ---------- */
 @media (max-width:640px){
   .band-top{padding-block:12px 6px;gap:8px}
