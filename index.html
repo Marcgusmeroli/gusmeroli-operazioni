@@ -216,6 +216,10 @@ td .bar{width:90px;margin-left:auto}
 .entry-body{display:flex;flex-direction:column;gap:10px;min-width:0}
 .entry-body p{max-width:65ch;white-space:pre-line}
 .entry-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.entry-docs{display:flex;gap:8px;flex-wrap:wrap}
+.btn.doc{display:inline-flex;gap:8px;align-items:center;text-decoration:none;font-size:13px;padding:8px 14px;max-width:100%;text-align:left}
+.btn.doc .ico{color:var(--gold)}
+.scelte{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;border:1px solid var(--line);padding:10px}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .photos button{padding:0;border:0;background:var(--panel);cursor:zoom-in;aspect-ratio:4/3;max-width:100%;overflow:hidden;display:block}
 .photos img{width:100%;height:100%;object-fit:cover;display:block}
@@ -518,6 +522,15 @@ function apriForm(cfg){
       el = h('textarea', { id:id, required:f.obbl });
       el.value = valori[f.k] || '';
       corpo = el;
+    } else if (f.tipo === 'scelte') {
+      var gia = valori[f.k] || [];
+      el = { caselle: f.opzioni.map(function(o){
+        var c = h('input', { type:'checkbox', value:o[0] });
+        c.checked = gia.indexOf(o[0]) >= 0;
+        return c;
+      }) };
+      corpo = f.opzioni.length ? h('div', { class:'scelte' }, f.opzioni.map(function(o, n){ return h('label', { class:'check' }, el.caselle[n], o[1]); }))
+                               : h('span', { class:'hint' }, 'Nessun documento in archivio.');
     } else if (f.tipo === 'file') {
       var inp = h('input', { id:id, type:'file', accept:'application/pdf,image/jpeg,image/png,image/webp' });
       el = { input: inp, togli: null };
@@ -598,6 +611,8 @@ function apriForm(cfg){
                      .then(function(a){ tieni.push(a.id); });
         });
         vals[f.k] = tieni;
+      } else if (f.tipo === 'scelte') {
+        vals[f.k] = el.caselle.filter(function(c){ return c.checked; }).map(function(c){ return c.value; });
       } else if (f.tipo === 'number') {
         vals[f.k] = el.value === '' ? null : Number(el.value);
       } else vals[f.k] = el.value.trim();
@@ -734,6 +749,8 @@ function editDiario(x){
     { k:'data', label:'Data', tipo:'date', obbl:true, meta:true },
     { k:'fase', label:'Fase', tipo:'select', opzioni:[['','Nessuna']].concat(S.fasi.map(function(f){ return [f.id, f.titolo]; })), meta:true },
     { k:'testo', label:'Cosa è successo', tipo:'textarea' },
+    { k:'documenti', label:'Documenti da richiamare', tipo:'scelte', opzioni:docValidi().map(function(d){ return [d.id, d.titolo + (d.sotto ? ' · ' + d.sotto : '')]; }),
+      aiuto:'Spunta i documenti di cui parli: sotto l’aggiornamento compare un pulsante per aprirli.' },
     { k:'foto', label:'Foto', tipo:'foto', aiuto:'Puoi sceglierne più di una. Le foto grandi vengono ridotte prima del caricamento.' }
   ], onSalva: function(v){ return salva('diario', x && x.id, Object.assign({}, x, v)); },
      onElimina: x ? function(){ return elimina('diario', x, x.foto || []); } : null });
@@ -1418,13 +1435,29 @@ function vDocumenti(){
 }
 
 /* ---------- Diario ---------- */
+function docValidi(){ return S.doc.filter(function(d){ return d.sotto !== 'Versioni precedenti'; }); }
+/* documenti richiamati da un aggiornamento: quelli spuntati dal gestore; se non ne ha spuntati, quelli citati col titolo esatto */
+function docRichiamati(x){
+  var validi = docValidi();
+  if (Array.isArray(x.documenti)) return validi.filter(function(d){ return x.documenti.indexOf(d.id) >= 0; });
+  var t = ((x.titolo || '') + ' ' + (x.testo || '')).toLowerCase();
+  return validi.filter(function(d){ return d.titolo && d.titolo.length > 5 && t.indexOf(d.titolo.toLowerCase()) >= 0; });
+}
+function pulsanteDoc(d){
+  var url = httpUrl(d.link), f = d.file && d.file.id ? d.file : null, testo = [h('span', { class:'ico', 'aria-hidden':'true' }, '↗'), d.titolo];
+  if (f && /^image\//.test(f.tipo || '')) return h('button', { class:'btn ghost doc', type:'button', onclick:function(){ lightbox(f.id); } }, testo);
+  if (f || url) return h('a', { class:'btn ghost doc', href: f ? blob(f.id) : url, target:'_blank', rel:'noopener' }, testo);
+  return h('button', { class:'btn ghost doc', type:'button', onclick:function(){ vai('documenti'); } }, testo);
+}
 function voceDiario(x){
+  var richiamati = docRichiamati(x);
   var fase = S.fasi.filter(function(f){ return f.id === x.fase; })[0];
   return h('article', { class:'entry' },
     h('div', { class:'date' }, data(x.data)),
     h('div', { class:'entry-body' },
       h('div', { class:'entry-head' }, h('h3', {}, x.titolo), fase ? pill('neutral', fase.titolo) : null, modifica(function(){ editDiario(x); })),
       x.testo ? h('p', {}, x.testo) : null,
+      richiamati.length ? h('div', { class:'entry-docs' }, richiamati.map(pulsanteDoc)) : null,
       (x.foto || []).length ? h('div', { class:'photos' }, x.foto.map(function(id){
         var b = h('button', { type:'button', 'aria-label':'Ingrandisci la foto', onclick:function(){ lightbox(id); } });
         var img = h('img', { src:blob(id), alt:'Foto: ' + (x.titolo || ''), loading:'lazy' });
