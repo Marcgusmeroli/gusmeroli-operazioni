@@ -337,6 +337,7 @@ details.fase-blk:not([open]){padding-bottom:16px}
   .lav .what,.lav .prog{grid-column:1 / -1}
 }
 @media (max-width:440px){ .tiles{grid-template-columns:minmax(0,1fr)} }
+
 table.recap{min-width:520px}
 table.recap td{padding-block:12px}
 table.recap td.num{font-size:18px}
@@ -355,6 +356,36 @@ details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
 details.cartella.sotto > summary .nome{font-weight:400}
 .cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
 .cartella-body .row:last-child{border-bottom:0}
+/* ---------- telefono ---------- */
+@media (max-width:640px){
+  .band-top{padding-block:12px 6px;gap:8px}
+  .role{display:none}
+  .nav{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0;overflow:visible}
+  .nav button,.nav button:first-child{grid-column:span 3;padding:10px 2px;text-align:center;font-size:15px}
+  .nav button:nth-child(n+5){grid-column:span 4}
+  main{padding-block:20px 40px;gap:26px}
+  h2{font-size:23px}
+  details.acc > summary{font-size:20px;padding:14px 0}
+  .panel{padding:16px}
+  .btn{padding:11px 16px}
+  .scroll-x{overflow-x:visible}
+  .scroll-x:has(> .chart),.scroll-x:has(> .gantt){display:none}
+  table,table.recap{min-width:0;display:block}
+  thead{display:none}
+  tbody,tfoot{display:block}
+  tr{display:block;padding:10px 0;border-bottom:1px solid var(--line)}
+  tfoot tr{border-bottom:0;border-top:1px solid var(--ink)}
+  th,td,table.recap td{border-bottom:0;padding:3px 0}
+  td{display:flex;justify-content:space-between;align-items:baseline;gap:16px;text-align:right}
+  td:first-child{display:block;text-align:left;font-weight:700;padding-bottom:4px}
+  td[data-l]::before{content:attr(data-l);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:left;flex:0 1 auto;font-family:var(--sans);font-weight:400}
+  td:not(:first-child):empty{display:none}
+  td .bar{margin-left:0}
+  tfoot td,tfoot th{border-top:0}
+  table.recap tr.forte{background:var(--panel);padding-inline:10px}
+  table.recap tr.forte td{background:transparent}
+  table.recap tr.forte td:first-child{padding-left:0}
+}
 </style>
 
 </head>
@@ -789,8 +820,14 @@ function scheda(lista){
   return h('dl', { class:'scheda' }, (lista || []).map(function(x){ return [h('dt', {}, x.k), h('dd', {}, x.v)]; }));
 }
 function tabella(cls, head, righe, piede){
-  return h('div', { class:'scroll-x' }, h('table', { class:cls || '' },
-    h('thead', {}, h('tr', {}, head)), h('tbody', {}, righe), piede ? h('tfoot', {}, piede) : null));
+  var t = h('table', { class:cls || '' },
+    h('thead', {}, h('tr', {}, head)), h('tbody', {}, righe), piede ? h('tfoot', {}, piede) : null);
+  /* sul telefono ogni riga diventa una scheda: ogni cella si porta dietro il nome della sua colonna */
+  var nomi = Array.prototype.map.call(t.tHead.rows[0].cells, function(c){ return c.textContent; });
+  Array.prototype.forEach.call(t.querySelectorAll('tbody tr, tfoot tr'), function(r){
+    Array.prototype.forEach.call(r.cells, function(c, i){ if (i && nomi[i] && c.colSpan === 1) c.setAttribute('data-l', nomi[i]); });
+  });
+  return h('div', { class:'scroll-x' }, t);
 }
 function th(t, l){ return h('th', { class: l ? 'l' : '', scope:'col' }, t); }
 function ripartizione(){
