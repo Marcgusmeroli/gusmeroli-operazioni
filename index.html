@@ -749,8 +749,8 @@ function vuoto(testo, azione){ return h('div', { class:'empty' }, h('p', {}, tes
 function modifica(fn){ return S.canEdit ? h('button', { class:'link', type:'button', onclick:fn }, 'Modifica') : null; }
 function allegato(a){
   if (!a || !a.id) return null;
-  if (/^image\//.test(a.tipo || '')) return h('button', { class:'link', type:'button', onclick:function(){ lightbox(a.id); } }, 'Vedi allegato');
-  return h('a', { href:blob(a.id), target:'_blank', rel:'noopener', class:'small' }, 'Apri allegato');
+  if (/^image\//.test(a.tipo || '')) return h('button', { class:'link', type:'button', onclick:function(){ lightbox(a.id); } }, 'Apri');
+  return h('a', { href:blob(a.id), target:'_blank', rel:'noopener', class:'small' }, 'Apri');
 }
 function scheda(lista){
   return h('dl', { class:'scheda' }, (lista || []).map(function(x){ return [h('dt', {}, x.k), h('dd', {}, x.v)]; }));
@@ -1397,7 +1397,9 @@ function vRischi(){
 /* ---------- Documenti ---------- */
 function vDocumenti(){
   var cats = CATEGORIE.slice();
-  S.doc.forEach(function(d){ if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria); });
+  /* le versioni superate restano in archivio per il gestore: alle Proprietarie si mostra solo il documento valido */
+  var docs = S.doc.filter(function(d){ return S.canEdit || d.sotto !== 'Versioni precedenti'; });
+  docs.forEach(function(d){ if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria); });
   function quanti(n){ return n + (n === 1 ? ' documento' : ' documenti'); }
   function rigaDoc(d){
     var url = httpUrl(d.link);
@@ -1411,7 +1413,7 @@ function vDocumenti(){
     return accEl(chiave, false, 'cartella' + (sotto ? ' sotto' : ''), h('summary', {}, h('span', { class:'nome' }, nome), h('span', { class:'small muted' }, quanti(n))), corpo);
   }
   var lista = cats.map(function(cat){
-    var ds = S.doc.filter(function(d){ return (d.categoria || 'Altro') === cat; });
+    var ds = docs.filter(function(d){ return (d.categoria || 'Altro') === cat; });
     if (!ds.length) return null;
     var sotto = [];
     ds.forEach(function(d){ if (d.sotto && sotto.indexOf(d.sotto) < 0) sotto.push(d.sotto); });
@@ -1425,7 +1427,7 @@ function vDocumenti(){
       sciolti.length ? h('div', { class:'rows' }, sciolti.map(rigaDoc)) : null));
   }).filter(Boolean);
   return [
-    testa('Documenti', S.doc.length ? quanti(S.doc.length) + ' in ' + lista.length + ' cartelle. Apri una cartella per vedere cosa contiene.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
+    testa('Documenti', docs.length ? quanti(docs.length) + ' in ' + lista.length + ' cartelle. Apri una cartella per vedere cosa contiene.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
     lista.length ? h('div', {}, lista) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
   ];
 }
