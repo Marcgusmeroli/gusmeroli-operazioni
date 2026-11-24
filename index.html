@@ -241,8 +241,11 @@ td .bar{width:90px;margin-left:auto}
 .entry-body p{max-width:65ch;white-space:pre-line}
 .entry-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .entry-docs{display:flex;gap:8px;flex-wrap:wrap}
-.btn.doc{display:inline-flex;gap:8px;align-items:center;text-decoration:none;font-size:13px;padding:8px 14px;max-width:100%;text-align:left}
-.btn.doc .ico{color:var(--gold)}
+.btn.doc{display:inline-flex;gap:12px;align-items:center;text-decoration:none;font-size:15px;padding:10px 16px;max-width:100%;text-align:left;line-height:1.25}
+.btn.doc .ico{flex:none;width:24px;height:24px;fill:none;stroke:var(--gold-fill);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.btn.doc .t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.btn.doc .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.btn.doc .go{flex:none;font-size:14px;border:1px solid currentColor;border-radius:999px;padding:5px 12px;white-space:nowrap}
 .scelte{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;border:1px solid var(--line);padding:10px}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .photos button{padding:0;border:0;background:var(--panel);cursor:zoom-in;aspect-ratio:4/3;max-width:100%;overflow:hidden;display:block}
@@ -400,7 +403,7 @@ details.cartella.sotto > summary .nome{font-weight:400}
   .link{font-size:14px;padding:8px 0}
   .chip{padding:9px 14px;font-size:14px}
   details.acc > summary,details.cartella > summary{min-height:48px;align-items:center}
-  .btn.doc{padding:12px 14px;font-size:14px;width:100%}
+  .btn.doc{padding:14px 16px;font-size:16px;width:100%}
   .entry-docs{flex-direction:column}
   main{padding-block:20px 40px;gap:26px}
   h2{font-size:23px}
@@ -451,8 +454,8 @@ details.cartella.sotto > summary .nome{font-weight:400}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=c1fdbe2669ec"></script>
-<script src="archivio.js?v=c1fdbe2669ec"></script>
+<script src="config.js?v=1b85057b11c3"></script>
+<script src="archivio.js?v=1b85057b11c3"></script>
 <script>
 (function(){
 'use strict';
@@ -1546,10 +1549,13 @@ function docRichiamati(x){
   return validi.filter(function(d){ return d.titolo && d.titolo.length > 5 && t.indexOf(d.titolo.toLowerCase()) >= 0; });
 }
 function pulsanteDoc(d){
-  var url = httpUrl(d.link), f = d.file && d.file.id ? d.file : null, testo = [h('span', { class:'ico', 'aria-hidden':'true' }, '↗'), d.titolo];
-  if (f && /^image\//.test(f.tipo || '')) return h('button', { class:'btn ghost doc', type:'button', onclick:function(){ lightbox(f.id); } }, testo);
-  if (f || url) return h('a', { class:'btn ghost doc', href: f ? blob(f.id) : url, target:'_blank', rel:'noopener' }, testo);
-  return h('button', { class:'btn ghost doc', type:'button', onclick:function(){ vai('documenti'); } }, testo);
+  var url = httpUrl(d.link), f = d.file && d.file.id ? d.file : null;
+  var ico = sv('svg', { class:'ico', viewBox:'0 0 24 24', 'aria-hidden':'true' });
+  ico.appendChild(sv('path', { d:'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6' }));
+  var testo = [ico, h('span', { class:'t' }, h('span', { class:'k' }, 'Documento'), d.titolo), h('span', { class:'go' }, 'Apri ›')];
+  if (f && /^image\//.test(f.tipo || '')) return h('button', { class:'btn doc', type:'button', onclick:function(){ lightbox(f.id); } }, testo);
+  if (f || url) return h('a', { class:'btn doc', href: f ? blob(f.id) : url, target:'_blank', rel:'noopener' }, testo);
+  return h('button', { class:'btn doc', type:'button', onclick:function(){ vai('documenti'); } }, testo);
 }
 function voceDiario(x){
   var richiamati = docRichiamati(x);
@@ -1596,7 +1602,15 @@ function render(){
   else if (S.status === 'error') out = h('div', { class:'empty' }, h('h2', {}, 'Dati non raggiungibili'), h('p', {}, 'Non è stato possibile leggere i dati dell’operazione. Ricarica la pagina tra qualche minuto.'));
   else if (S.op === undefined) out = h('div', { class:'empty' }, h('p', {}, S.slow ? 'I dati non rispondono ancora. La pagina si aggiorna da sola appena arrivano.' : 'Carico i dati dell’operazione…'));
   else if (S.op === null) out = h('div', { class:'empty' }, h('h2', {}, 'Operazione non ancora creata'), h('p', {}, 'Qui compariranno struttura, piano economico, piano d’azione, conti, documenti e foto dell’operazione.'), S.canEdit ? btn('Crea l’operazione', editOp) : null);
-  else out = ({ oggi:vOggi, lavori:vLavori, cassa:vCassa, piano:vPiano, diario:vDiario, documenti:vDocumenti, scheda:vScheda }[S.view] || vOggi)();
+  else {
+    try { out = ({ oggi:vOggi, lavori:vLavori, cassa:vCassa, piano:vPiano, diario:vDiario, documenti:vDocumenti, scheda:vScheda }[S.view] || vOggi)(); }
+    catch (e) {
+      if (window.console) console.error(e);
+      out = h('div', { class:'empty' }, h('h2', {}, 'Questa pagina non si è aperta'),
+        h('p', {}, 'Riprova tra poco oppure torna alla pagina iniziale. Se succede ancora, segnalalo a Gusmeroli S.R.L.'),
+        btn('Torna a Oggi', function(){ vai('oggi'); }), h('p', { class:'small muted' }, 'Dettaglio tecnico: ' + (e && e.message ? e.message : e)));
+    }
+  }
   var view = $('#view');
   view.replaceChildren();
   appendAll(view, [out]);
@@ -1646,7 +1660,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = 'c1fdbe2669ec';
+  var V = '1b85057b11c3';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
