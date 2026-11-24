@@ -451,8 +451,8 @@ details.cartella.sotto > summary .nome{font-weight:400}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script>
-<script src="archivio.js"></script>
+<script src="config.js?v=c1fdbe2669ec"></script>
+<script src="archivio.js?v=c1fdbe2669ec"></script>
 <script>
 (function(){
 'use strict';
@@ -1642,6 +1642,23 @@ function avvia(){
   }).catch(function(){ S.status = 'error'; render(); });
 }
 avvia();
+})();
+</script>
+<script>
+(function(){
+  var V = 'c1fdbe2669ec';
+  function controlla(){
+    fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
+      t = (t || '').trim();
+      if (!t || t === V) return;
+      if (document.querySelector('dialog[open]') || document.getElementById('accesso')) return;   /* non interrompo chi sta scrivendo o entrando */
+      try { if (sessionStorage.getItem('gusmeroli-agg') === t) return; sessionStorage.setItem('gusmeroli-agg', t); } catch (e) {}
+      location.replace(location.pathname + '?v=' + t + location.hash);
+    }).catch(function(){});
+  }
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) controlla(); });
+  window.addEventListener('pageshow', controlla);
+  setInterval(controlla, 180000);
 })();
 </script>
 </body>
