@@ -42,7 +42,8 @@ var stile = el('style', {},
   '#accesso .msg{min-height:1.4em;color:#E69C91}' +
   '.chi{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--on-band-2);flex-wrap:wrap}' +
   '.chi select,.chi button{font:inherit;font-size:12px;background:transparent;color:var(--on-band);border:1px solid var(--band-line);padding:4px 8px;border-radius:2px;cursor:pointer}' +
-  '.chi select option{color:#0F2540}');
+  '.chi select option{color:#0F2540}' +
+  'footer .esci{font:inherit;background:none;border:0;padding:0;color:var(--ink2);text-decoration:underline;cursor:pointer}');
 document.head.appendChild(stile);
 
 function schermo(){
@@ -237,9 +238,10 @@ function intestazione(){
     sel.addEventListener('change', function(){ ricorda(sel.value); location.reload(); });
     chi.appendChild(sel);
   }
-  chi.appendChild(el('span', {}, utente.email));
-  chi.appendChild(el('button', { type:'button', onclick:esci }, 'Esci'));
-  top.appendChild(chi);
+  if (chi.firstChild) top.appendChild(chi);
+  /* niente mail né «Esci» in testa: l'uscita resta come collegamento discreto a fondo pagina */
+  var piede = document.querySelector('footer');
+  if (piede) piede.appendChild(el('button', { class:'esci', type:'button', onclick:esci }, 'Esci'));
 }
 function dopoAccesso(sessione){
   utente = sessione.user;
