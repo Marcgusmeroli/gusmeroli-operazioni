@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#FAF8F4">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -18,21 +18,13 @@
 <style>
 /* Layout: fascia scura col logo e le sezioni in alto, sotto una colonna unica larga 1120px; le cifre in Times, tutto il resto in Arial, come nei manuali Gusmeroli. */
 :root{
-  --bg:#FAF8F4; --panel:#F1EDE6; --ink:#1F1C19; --ink2:#5E564E; --line:#E3DDD3; --sand:#B8A898;
-  --gold:#7D6436; --gold-fill:#A8894F; --gold-soft:#EADFCB; --band:#FAF8F4; --on-band:#1F1C19; --on-band-2:#8A8178; --band-line:#E3DDD3; --logo:invert(1);
-  --ok:#2F6B4F; --ok-bg:#E4ECE3; --warn:#8A5A12; --warn-bg:#F3E7CF; --crit:#8C2F2F; --crit-bg:#F2DEDC;
+  /* nero pieno, avorio per i testi, oro del marchio per gli accenti: è l'unico aspetto, uguale di giorno e di notte */
+  --bg:#000000; --panel:#0F0E0C; --ink:#F4F1EC; --ink2:#AEA79C; --line:#2A2622; --sand:#6E655A;
+  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#3A301F; --band:#000000; --on-band:#FFFFFF; --on-band-2:#8C8477; --band-line:#2A2622; --logo:none;
+  --ok:#8FC7A6; --ok-bg:#16261E; --warn:#E3B56C; --warn-bg:#2E2516; --crit:#E59A94; --crit-bg:#301A1C;
   --serif:"Times New Roman",Times,Georgia,serif; --sans:"Times New Roman",Times,Georgia,serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#171513; --on-band:#F4F1EC; --on-band-2:#8C7F72; --band-line:#3A3530; --logo:none;
-  --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
-  color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#171513; --panel:#24211E; --ink:#F4F1EC; --ink2:#B8A898; --line:#3A3530; --sand:#8C7F72;
-  --gold:#D4B37A; --gold-fill:#A8894F; --gold-soft:#4A3F2C; --band:#171513; --on-band:#F4F1EC; --on-band-2:#8C7F72; --band-line:#3A3530; --logo:none;
-  --ok:#8FC7A6; --ok-bg:#1F3329; --warn:#E3B56C; --warn-bg:#3B3020; --crit:#E59A94; --crit-bg:#3C2024;
-  color-scheme:dark }
 
 *{box-sizing:border-box}
 /* dietro alla pagina c'è il blu della fascia: così sopra (barra di stato, rimbalzo dello scorrimento) non compare mai il chiaro */
@@ -258,8 +250,8 @@ td .bar{width:90px;margin-left:auto}
 .notice.warn{border-left-color:var(--warn)}
 footer{border-top:1px solid var(--line);padding-block:20px 8px;font-size:12px;color:var(--ink2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
-dialog{background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:0;width:min(580px,calc(100% - 32px));max-height:calc(100% - 32px)}
-dialog::backdrop{background:rgba(15,13,11,.65)}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:0;width:min(580px,calc(100% - 32px));max-height:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.78)}
 .form{display:flex;flex-direction:column;gap:16px;padding:24px}
 .form h2{font-size:24px}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -373,13 +365,13 @@ details.cartella.sotto > summary .nome{font-weight:400}
 .cartella-body .row:last-child{border-bottom:0}
 /* ---------- aspetto leggero: niente blocchi pieni, solo linee sottili e spazio ---------- */
 .band{border-bottom:1px solid var(--line)}
-.nav button[aria-current="page"]{border-bottom-color:var(--ink)}
+.nav button[aria-current="page"]{border-bottom-color:var(--gold-fill)}
 .panel{background:transparent;border:1px solid var(--line);padding:20px}
 .tile,.tile.buono{background:transparent;border-top:1px solid var(--line);padding:14px 0 4px}
 .tiles{gap:4px 28px}
 .empty{background:transparent;border:1px solid var(--line)}
 .notice{background:transparent;border-left:2px solid var(--gold-fill)}
-.hero,.figures{border-top-color:var(--line)}
+.hero,.figures{border-top-color:var(--gold-fill)}
 details.acc,details.acc:last-child,.fase-blk{border-color:var(--line)}
 .party{border-top:1px solid var(--line)}
 .party.gestore{border-top-color:var(--gold-fill)}
@@ -421,7 +413,7 @@ table.recap tr.forte td{background:transparent}
   .nav .lungo{display:none}
   .nav .corto{display:block}
   .nav button[aria-current="page"]{color:var(--on-band)}
-  .nav button[aria-current="page"] .ico{stroke:var(--ink);stroke-width:2}
+  .nav button[aria-current="page"] .ico{stroke:var(--gold);stroke-width:2}
   .tiles{gap:0 20px}
   table.recap tr.forte{background:transparent;padding-inline:0}
   footer{padding-bottom:16px}
@@ -479,8 +471,8 @@ table.recap tr.forte td{background:transparent}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=be85b2585e87"></script>
-<script src="archivio.js?v=be85b2585e87"></script>
+<script src="config.js?v=046fd118a60f"></script>
+<script src="archivio.js?v=046fd118a60f"></script>
 <script>
 (function(){
 'use strict';
@@ -1695,7 +1687,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = 'be85b2585e87';
+  var V = '046fd118a60f';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
