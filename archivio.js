@@ -40,7 +40,7 @@ var stile = el('style', {},
   '#accesso button{font:inherit;padding:12px 16px;border:1px solid var(--gold-fill);background:var(--gold-fill);color:#141210;cursor:pointer;border-radius:2px}' +
   '#accesso button.piano{background:transparent;color:var(--on-band);border-color:var(--band-line)}' +
   '#accesso button[disabled]{opacity:.6;cursor:default}' +
-  '#accesso .msg{min-height:1.4em;color:#E69C91}' +
+  '#accesso .msg{min-height:1.4em;color:var(--crit)}' +
   '.chi{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--on-band-2);flex-wrap:wrap}' +
   '.chi select,.chi button{font:inherit;font-size:12px;background:transparent;color:var(--on-band);border:1px solid var(--band-line);padding:4px 8px;border-radius:2px;cursor:pointer}' +
   '.chi select option{color:#1F1C19}' +
