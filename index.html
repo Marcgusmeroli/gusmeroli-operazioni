@@ -18,9 +18,9 @@
 <style>
 /* Layout: fascia scura col logo e le sezioni in alto, sotto una colonna unica larga 1120px; le cifre in Times, tutto il resto in Arial, come nei manuali Gusmeroli. */
 :root{
-  /* nero pieno, avorio per i testi, oro del marchio per gli accenti: è l'unico aspetto, uguale di giorno e di notte */
-  --bg:#000000; --panel:#0F0E0C; --ink:#F4F1EC; --ink2:#AEA79C; --line:#2A2622; --sand:#6E655A;
-  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#3A301F; --band:#000000; --on-band:#FFFFFF; --on-band-2:#8C8477; --band-line:#2A2622; --logo:none;
+  /* neutri come sul sito Apple (nero, bianco spento, grigi puri), un solo accento: l’oro del marchio; è l'unico aspetto, uguale di giorno e di notte */
+  --bg:#000000; --panel:#1D1D1F; --ink:#F5F5F7; --ink2:#A1A1A6; --line:#2C2C2E; --sand:#6E6E73;
+  --gold:#D4B37A; --gold-fill:#B0905A; --gold-soft:#3A301F; --band:#000000; --on-band:#FFFFFF; --on-band-2:#86868B; --band-line:#2C2C2E; --logo:none;
   --ok:#8FC7A6; --ok-bg:#16261E; --warn:#E3B56C; --warn-bg:#2E2516; --crit:#E59A94; --crit-bg:#301A1C;
   --serif:"Times New Roman",Times,Georgia,serif; --sans:"Times New Roman",Times,Georgia,serif;
   color-scheme:dark;
@@ -130,7 +130,7 @@ a{color:var(--gold);text-underline-offset:3px}
 .pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent;background:transparent;font-family:var(--sans)}
 button.pill{cursor:pointer}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}
-.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.warn{border-color:var(--sand);color:var(--ink2)}
 .pill.crit{background:var(--crit-bg);color:var(--crit)}
 .pill.gold{border-color:var(--gold-fill);color:var(--gold)}
 .pill.neutral{border-color:var(--line);color:var(--ink2)}
@@ -471,8 +471,8 @@ table.recap tr.forte td{background:transparent}
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=046fd118a60f"></script>
-<script src="archivio.js?v=046fd118a60f"></script>
+<script src="config.js?v=782f92fdb0c1"></script>
+<script src="archivio.js?v=782f92fdb0c1"></script>
 <script>
 (function(){
 'use strict';
@@ -1687,7 +1687,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '046fd118a60f';
+  var V = '782f92fdb0c1';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
