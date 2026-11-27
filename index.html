@@ -361,6 +361,8 @@ details.cartella > summary::before{content:"\25B8";color:var(--gold);width:14px;
 details.cartella[open] > summary::before{content:"\25BE"}
 details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
 details.cartella.sotto > summary .nome{font-weight:400}
+details.cartella.vuota > summary .nome{color:var(--ink2)}
+.cartella-body > p{padding:6px 0 10px}
 .cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
 .cartella-body .row:last-child{border-bottom:0}
 /* ---------- aspetto leggero: niente blocchi pieni, solo linee sottili e spazio ---------- */
@@ -494,8 +496,8 @@ dialog .field input,dialog .field select,dialog .field textarea{background:var(-
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=5b972e344b5e"></script>
-<script src="archivio.js?v=5b972e344b5e"></script>
+<script src="config.js?v=84a1fe0c6e07"></script>
+<script src="archivio.js?v=84a1fe0c6e07"></script>
 <script>
 (function(){
 'use strict';
@@ -509,7 +511,7 @@ var ICONE = { oggi:'M3 11l9-7 9 7v9h-6v-6H9v6H3z', cassa:'M4 20V11M10 20V5M16 20
   piano:'M4 6h16v14H4zM4 10h16M8 14l3 3 5-6', diario:'M4 5h16v11H10l-6 4z', documenti:'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6' };
 var CORTI = { diario:'Novità', documenti:'Documenti' };
 var STATI_OP = ['In acquisizione','Rogito fatto','Cantiere','In vendita','Venduta','Chiusa'];
-var CATEGORIE = ['01 Acquisto','02 Business plan','03 Progetto','04 Render','05 Capitolato','06 Preventivi','07 Fatture','08 Foto','09 Documenti per la vendita','10 Vendita','11 Società e contratto','Altro'];
+var CATEGORIE = ['01 Acquisto','02 Business plan','03 Progetto','04 Render','05 Capitolato','06 Preventivi','07 Fatture','08 Foto','09 Documenti commercializzazione','10 Vendita','11 Investitori','Altro'];
 var STATI = [['da-fare','Da fare'],['in-corso','In corso'],['fatto','Fatto']];
 var S = { op: undefined, fasi: [], azioni: [], cassa: [], rischi: [], mov: [], doc: [], diario: [], lavori: [], decisioni: [], aperti: {},
           canEdit: false, db: null, assets: null, status: 'loading', slow: false, view: 'oggi', filtro: 'tutti' };
@@ -870,7 +872,7 @@ function editDoc(d){
   apriForm({ titolo: d ? 'Documento' : 'Nuovo documento', valori: d || { data: oggi() }, campi: [
     { k:'titolo', label:'Titolo', obbl:true },
     { k:'categoria', label:'Cartella', tipo:'select', opzioni:CATEGORIE, meta:true },
-    { k:'sotto', label:'Sottocartella', meta:true, segnaposto:'es. 1 Proposta' },
+    { k:'sotto', label:'Sottocartella', meta:true, segnaposto:'es. 1 Proposta', aiuto:'Per una cartella dentro l’altra usa la barra: 1 Catasto/Planimetrie.' },
     { k:'data', label:'Data', tipo:'date' },
     { k:'link', label:'Link (Drive o altro)', tipo:'url', segnaposto:'https://…', aiuto:'In alternativa al file: incolla il link al documento.' },
     { k:'file', label:'File (PDF o foto)', tipo:'file' },
@@ -1552,11 +1554,21 @@ function vRischi(){
 
 /* ---------- Documenti ---------- */
 function vDocumenti(){
-  var cats = CATEGORIE.slice();
-  /* le versioni superate restano in archivio per il gestore: alle Proprietarie si mostra solo il documento valido */
-  var docs = S.doc.filter(function(d){ return S.canEdit || d.sotto !== 'Versioni precedenti'; });
-  docs.forEach(function(d){ if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria); });
-  function quanti(n){ return n + (n === 1 ? ' documento' : ' documenti'); }
+  /* Le cartelle sono quelle di Drive, con gli stessi nomi e nello stesso ordine: l'elenco sta in op.cartelle (percorsi separati da «/»).
+     Un documento sta in categoria (cartella di primo livello) + sotto (resto del percorso). */
+  var docs = S.doc.filter(function(d){ return S.canEdit || String(d.sotto || '').indexOf('Versioni precedenti') < 0; });
+  function quanti(n){ return n ? n + (n === 1 ? ' documento' : ' documenti') : 'vuota'; }
+  function percorso(d){ return (d.categoria || 'Altro') + (d.sotto ? '/' + d.sotto : ''); }
+  var radice = { figli:{}, docs:[] };
+  function nodo(p){
+    var n = radice;
+    String(p).split('/').forEach(function(pezzo){ pezzo = pezzo.trim(); if (!pezzo) return; n = n.figli[pezzo] || (n.figli[pezzo] = { nome:pezzo, figli:{}, docs:[] }); });
+    return n;
+  }
+  (Array.isArray(S.op.cartelle) && S.op.cartelle.length ? S.op.cartelle : CATEGORIE.filter(function(c){ return c !== 'Altro'; })).forEach(nodo);
+  docs.forEach(function(d){ nodo(percorso(d)).docs.push(d); });
+  function conta(n){ return n.docs.length + Object.keys(n.figli).reduce(function(t, k){ return t + conta(n.figli[k]); }, 0); }
+  function ordina(a, b){ return a.localeCompare(b, 'it', { numeric:true, sensitivity:'base' }); }
   function rigaDoc(d){
     var url = httpUrl(d.link);
     return h('div', { class:'row' }, h('span', { class:'when' }, data(d.data)),
@@ -1565,31 +1577,25 @@ function vDocumenti(){
         !d.file && !url ? h('span', { class:'small muted' }, 'Da caricare') : null),
       modifica(function(){ editDoc(d); }) || h('span', {}));
   }
-  function cartella(chiave, nome, n, corpo, sotto){
-    return accEl(chiave, false, 'cartella' + (sotto ? ' sotto' : ''), h('summary', {}, h('span', { class:'nome' }, nome), h('span', { class:'small muted' }, quanti(n))), corpo);
+  function cartella(n, chiave, livello){
+    var nomi = Object.keys(n.figli).sort(ordina), tot = conta(n);
+    var righe = n.docs.slice().sort(function(a, b){ return ordina(a.titolo || '', b.titolo || ''); });
+    return accEl('d-' + chiave, false, 'cartella' + (livello ? ' sotto' : '') + (tot ? '' : ' vuota'),
+      h('summary', {}, h('span', { class:'nome' }, n.nome), h('span', { class:'small muted' }, quanti(tot))),
+      h('div', { class:'cartella-body' },
+        nomi.map(function(k){ return cartella(n.figli[k], chiave + '/' + k, livello + 1); }),
+        righe.length ? h('div', { class:'rows' }, righe.map(rigaDoc)) : null,
+        !nomi.length && !righe.length ? h('p', { class:'small muted' }, 'Cartella vuota.') : null));
   }
-  var lista = cats.map(function(cat){
-    var ds = docs.filter(function(d){ return (d.categoria || 'Altro') === cat; });
-    if (!ds.length) return null;
-    var sotto = [];
-    ds.forEach(function(d){ if (d.sotto && sotto.indexOf(d.sotto) < 0) sotto.push(d.sotto); });
-    sotto.sort();
-    var sciolti = ds.filter(function(d){ return !d.sotto; });
-    return cartella('d-' + cat, cat, ds.length, h('div', { class:'cartella-body' },
-      sotto.map(function(k){
-        var dk = ds.filter(function(d){ return d.sotto === k; });
-        return cartella('d-' + cat + '/' + k, k, dk.length, h('div', { class:'rows' }, dk.map(rigaDoc)), true);
-      }),
-      sciolti.length ? h('div', { class:'rows' }, sciolti.map(rigaDoc)) : null));
-  }).filter(Boolean);
+  var prime = Object.keys(radice.figli).sort(ordina);
   return [
-    testa('Documenti', docs.length ? quanti(docs.length) + ' in ' + lista.length + ' cartelle. Apri una cartella per vedere cosa contiene.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
-    lista.length ? h('div', {}, lista) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
+    testa('Documenti', docs.length ? quanti(docs.length) + '. Le cartelle sono le stesse dell’archivio dell’operazione.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
+    prime.length ? h('div', {}, prime.map(function(k){ return cartella(radice.figli[k], k, 0); })) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
   ];
 }
 
 /* ---------- Diario ---------- */
-function docValidi(){ return S.doc.filter(function(d){ return d.sotto !== 'Versioni precedenti'; }); }
+function docValidi(){ return S.doc.filter(function(d){ return String(d.sotto || '').indexOf('Versioni precedenti') < 0; }); }
 /* documenti richiamati da un aggiornamento: quelli spuntati dal gestore; se non ne ha spuntati, quelli citati col titolo esatto */
 function docRichiamati(x){
   var validi = docValidi();
@@ -1710,7 +1716,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '5b972e344b5e';
+  var V = '84a1fe0c6e07';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
