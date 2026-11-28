@@ -454,6 +454,12 @@ table.recap tr.forte td{background:transparent}
 .hero-side .fig,.hero-side .fig + .fig{background:var(--panel);padding:14px 24px;border:0}
 .figures .fig,.figures .fig + .fig,.figures .fig:nth-child(n){background:#141414;color:#F4EFE6;padding:18px;border:0;--ink:#F4EFE6;--ink2:#B5AD9C;--gold:#C9A96A;--sand:#B5AD9C;--ok:#9CC7AE;--crit:#E3A29C}
 .figures .fig .l,.hero-main .l{color:#C9A96A}
+/* scala di toni del marchio: nero, bruno, oro, sabbia */
+.hero-side .fig:nth-child(1),.figures .fig:nth-child(2){background:#3B3023;color:#F4EFE6;--ink:#F4EFE6;--ink2:#CFC6B4;--gold:#D8BC84;--sand:#CFC6B4;--ok:#A9D1BA;--crit:#EDB1AB}
+.hero-side .fig:nth-child(1) .l,.figures .fig:nth-child(2) .l{color:#D8BC84}
+.hero-side .fig:nth-child(2),.figures .fig:nth-child(3){background:#B0905A;color:#141414;--ink:#141414;--ink2:#2E281D;--gold:#2E281D;--sand:#2E281D;--ok:#1E4A35;--crit:#6E1F1F}
+.hero-side .fig:nth-child(3),.figures .fig:nth-child(4){background:#DDCBA6;color:#141414;--ink:#141414;--ink2:#2E281D;--gold:#2E281D;--sand:#2E281D;--ok:#1E4A35;--crit:#6E1F1F}
+.hero-side .fig:nth-child(2) .l,.hero-side .fig:nth-child(3) .l,.figures .fig:nth-child(3) .l,.figures .fig:nth-child(4) .l{color:#2E281D}
 .tiles{gap:12px}
 .tile{background:var(--panel);border:0;padding:16px 18px}
 .tile.buono{background:var(--ok-bg);border:0;padding:16px 18px}
@@ -497,8 +503,8 @@ dialog .field input,dialog .field select,dialog .field textarea{background:var(-
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=23bddea790d7"></script>
-<script src="archivio.js?v=23bddea790d7"></script>
+<script src="config.js?v=7b77628b6cce"></script>
+<script src="archivio.js?v=7b77628b6cce"></script>
 <script>
 (function(){
 'use strict';
@@ -1717,7 +1723,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '23bddea790d7';
+  var V = '7b77628b6cce';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
