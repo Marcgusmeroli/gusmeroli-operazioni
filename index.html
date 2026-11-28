@@ -362,6 +362,18 @@ details.cartella[open] > summary::before{content:"\25BE"}
 details.cartella > summary .nome{font-weight:700;flex:1;min-width:0}
 details.cartella.sotto > summary .nome{font-weight:400}
 details.cartella.vuota > summary .nome{color:var(--ink2)}
+.briciole{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0 14px}
+.briciole .indietro{background:var(--ink);color:var(--bg);border:0;border-radius:2px;padding:9px 16px;cursor:pointer;font-size:15px;min-height:44px}
+.briciole .dove{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0;font-size:15px}
+.briciole .sep{color:var(--gold)}
+.cartelle{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.voce-cartella{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel);border:0;border-left:3px solid var(--gold-fill);padding:14px 16px;min-height:56px;cursor:pointer}
+.voce-cartella:hover{background:var(--tint)}
+.voce-cartella .ico{flex:none;width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:1.6;stroke-linejoin:round}
+.voce-cartella .nome{flex:1;min-width:0;font-weight:700;font-size:17px}
+.voce-cartella .freccia{color:var(--gold);font-size:20px;flex:none}
+.voce-cartella.vuota{border-left-color:var(--line)}
+.voce-cartella.vuota .nome{font-weight:400;color:var(--ink2)}
 .cartella-body > p{padding:6px 0 10px}
 .cartella-body{padding:0 0 10px 26px;display:flex;flex-direction:column}
 .cartella-body .row:last-child{border-bottom:0}
@@ -503,8 +515,8 @@ dialog .field input,dialog .field select,dialog .field textarea{background:var(-
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=7b77628b6cce"></script>
-<script src="archivio.js?v=7b77628b6cce"></script>
+<script src="config.js?v=aa2d21402813"></script>
+<script src="archivio.js?v=aa2d21402813"></script>
 <script>
 (function(){
 'use strict';
@@ -1584,20 +1596,36 @@ function vDocumenti(){
         !d.file && !url ? h('span', { class:'small muted' }, 'Da caricare') : null),
       modifica(function(){ editDoc(d); }) || h('span', {}));
   }
-  function cartella(n, chiave, livello){
-    var nomi = Object.keys(n.figli).sort(ordina), tot = conta(n);
-    var righe = n.docs.slice().sort(function(a, b){ return ordina(a.titolo || '', b.titolo || ''); });
-    return accEl('d-' + chiave, false, 'cartella' + (livello ? ' sotto' : '') + (tot ? '' : ' vuota'),
-      h('summary', {}, h('span', { class:'nome' }, n.nome), h('span', { class:'small muted' }, quanti(tot))),
-      h('div', { class:'cartella-body' },
-        nomi.map(function(k){ return cartella(n.figli[k], chiave + '/' + k, livello + 1); }),
-        righe.length ? h('div', { class:'rows' }, righe.map(rigaDoc)) : null,
-        !nomi.length && !righe.length ? h('p', { class:'small muted' }, 'Cartella vuota.') : null));
+  /* come su Drive: si entra in una cartella e si vede solo quello che contiene; per tornare indietro c'è il percorso in alto */
+  function apri(p){ S.percorsoDoc = p; render(); window.scrollTo(0, 0); }
+  var pezzi = String(S.percorsoDoc || '').split('/').filter(Boolean), qui = radice, validi = [];
+  pezzi.every(function(k){ if (!qui.figli[k]) return false; qui = qui.figli[k]; validi.push(k); return true; });
+  pezzi = validi; S.percorsoDoc = pezzi.join('/');
+  var nomi = Object.keys(qui.figli).sort(ordina);
+  var righe = qui.docs.slice().sort(function(a, b){ return ordina(a.titolo || '', b.titolo || ''); });
+  function icona(){
+    var ico = sv('svg', { class:'ico', viewBox:'0 0 24 24', 'aria-hidden':'true' });
+    ico.appendChild(sv('path', { d:'M3 6h6l2 2h10v11H3z' }));
+    return ico;
   }
-  var prime = Object.keys(radice.figli).sort(ordina);
+  var briciole = pezzi.length ? h('nav', { class:'briciole', 'aria-label':'Percorso' },
+    h('button', { type:'button', class:'indietro', onclick:function(){ apri(pezzi.slice(0, -1).join('/')); } }, '‹ Indietro'),
+    h('div', { class:'dove' },
+      h('button', { type:'button', class:'link', onclick:function(){ apri(''); } }, 'Documenti'),
+      pezzi.map(function(k, i){
+        return [h('span', { class:'sep', 'aria-hidden':'true' }, '›'),
+          i === pezzi.length - 1 ? h('strong', {}, k) : h('button', { type:'button', class:'link', onclick:function(){ apri(pezzi.slice(0, i + 1).join('/')); } }, k)];
+      }))) : null;
   return [
-    testa('Documenti', docs.length ? quanti(docs.length) + '. Le cartelle sono le stesse dell’archivio dell’operazione.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
-    prime.length ? h('div', {}, prime.map(function(k){ return cartella(radice.figli[k], k, 0); })) : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))
+    testa('Documenti', !pezzi.length && docs.length ? quanti(docs.length) + '. Le cartelle sono le stesse dell’archivio dell’operazione.' : '', btn('Aggiungi documento', function(){ editDoc(); })),
+    briciole,
+    nomi.length ? h('div', { class:'cartelle' }, nomi.map(function(k){
+      var n = qui.figli[k], tot = conta(n);
+      return h('button', { type:'button', class:'voce-cartella' + (tot ? '' : ' vuota'), onclick:function(){ apri(pezzi.concat(k).join('/')); } },
+        icona(), h('span', { class:'nome' }, k), h('span', { class:'small muted' }, quanti(tot)), h('span', { class:'freccia', 'aria-hidden':'true' }, '›'));
+    })) : null,
+    righe.length ? h('div', { class:'rows' }, righe.map(rigaDoc)) : null,
+    !nomi.length && !righe.length ? (pezzi.length ? h('p', { class:'muted', style:'padding:18px 0' }, 'Cartella vuota.') : vuoto('Nessun documento caricato.', btn('Aggiungi il primo documento', function(){ editDoc(); }))) : null
   ];
 }
 
@@ -1649,7 +1677,7 @@ $('#lb-close').addEventListener('click', function(){ $('#lb').close(); });
 $('#lb').addEventListener('click', function(e){ if (e.target === e.currentTarget) e.currentTarget.close(); });
 
 /* ---------- disegno ---------- */
-function vai(v){ v = ALIAS[v] || v; try { location.hash = v; } catch (e) {} S.view = v; render(); window.scrollTo(0, 0); }
+function vai(v){ v = ALIAS[v] || v; if (v === 'documenti' && S.view === 'documenti') S.percorsoDoc = ''; try { location.hash = v; } catch (e) {} S.view = v; render(); window.scrollTo(0, 0); }
 function render(){
   $('#nav').replaceChildren.apply($('#nav'), VIEWS.map(function(v){
     var ico = sv('svg', { class:'ico', viewBox:'0 0 24 24', 'aria-hidden':'true' });
@@ -1723,7 +1751,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = '7b77628b6cce';
+  var V = 'aa2d21402813';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
