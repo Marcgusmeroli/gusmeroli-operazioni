@@ -466,6 +466,19 @@ table.recap tr.forte td{background:transparent}
 .hero-side .fig,.hero-side .fig + .fig{background:var(--panel);padding:14px 24px;border:0}
 .figures .fig,.figures .fig + .fig,.figures .fig:nth-child(n){background:#141414;color:#F4EFE6;padding:18px;border:0;--ink:#F4EFE6;--ink2:#B5AD9C;--gold:#C9A96A;--sand:#B5AD9C;--ok:#9CC7AE;--crit:#E3A29C}
 .figures .fig .l,.hero-main .l{color:#C9A96A}
+.copertina{display:block;width:100%;padding:0;border:0;background:var(--panel);cursor:zoom-in;margin-bottom:6px}
+.copertina img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.prossimo{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--panel);border-left:3px solid var(--gold-fill);padding:16px 18px}
+.prossimo .t,.prossimo .q{display:flex;flex-direction:column;gap:3px;min-width:0}
+.prossimo .q{align-items:flex-end}
+.prossimo .l,.siamo-qui .l{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.prossimo .v{font-size:clamp(24px,3.2vw,32px);line-height:1.1;font-variant-numeric:tabular-nums}
+.siamo-qui{display:flex;flex-direction:column;gap:8px;background:var(--panel);border-left:3px solid var(--gold-fill);padding:16px 18px}
+.siamo-qui strong{font-size:20px}
+.btn.doc .t{overflow-wrap:anywhere;word-break:break-word}
+.btn.doc{min-width:0}
+.entry-docs,.entry-body{min-width:0;max-width:100%}
+@media (max-width:640px){ .prossimo .q{align-items:flex-start} }
 /* scala di toni del marchio: nero, bruno, oro, sabbia */
 .hero-side .fig:nth-child(1),.figures .fig:nth-child(2){background:#3B3023;color:#F4EFE6;--ink:#F4EFE6;--ink2:#CFC6B4;--gold:#D8BC84;--sand:#CFC6B4;--ok:#A9D1BA;--crit:#EDB1AB}
 .hero-side .fig:nth-child(1) .l,.figures .fig:nth-child(2) .l{color:#D8BC84}
@@ -515,8 +528,8 @@ dialog .field input,dialog .field select,dialog .field textarea{background:var(-
 <dialog id="lb"><div class="lb-bar"><button class="btn" id="lb-close" type="button">Chiudi</button></div><img id="lb-img" alt=""></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=aa2d21402813"></script>
-<script src="archivio.js?v=aa2d21402813"></script>
+<script src="config.js?v=d140d81716fe"></script>
+<script src="archivio.js?v=d140d81716fe"></script>
 <script>
 (function(){
 'use strict';
@@ -1121,43 +1134,35 @@ function vOggi(){
         h('p', { class:'live' }, h('i', {}), 'Dati in tempo reale', quando() ? ' · ' + quando() : '')),
       h('div', { class:'intro-side' }, op.stato ? pill('gold', op.stato) : null, S.canEdit ? btn('Modifica dati', editOp, 'ghost') : null)),
 
-    /* il numero che conta per primo, poi i tre che lo spiegano */
-    h('div', { class:'hero', role:'group', 'aria-label':'Numeri dell’operazione' },
+    /* la pagina parte da chi investe: prima l'immagine, poi i suoi numeri (utile, capitale, rendimento, rientro), poi cosa deve fare */
+    op.copertina ? (function(){
+      var b = h('button', { class:'copertina', type:'button', 'aria-label':'Ingrandisci l’immagine del progetto', onclick:function(){ lightbox(op.copertina); } });
+      var img = h('img', { src:blob(op.copertina), alt:'Progetto di ' + op.nome });
+      img.addEventListener('error', function(){ b.hidden = true; });
+      b.appendChild(img);
+      return b;
+    })() : null,
+
+    h('h4', {}, (S.canEdit ? 'Per ciascuna società proprietaria' : 'La tua quota') + ' · ' + Math.round(qs * 100) + '% dell’operazione'),
+    h('div', { class:'hero', role:'group', 'aria-label':'I numeri della quota' },
       h('div', { class:'hero-main' },
-        h('span', { class:'l' }, 'Margine atteso dell’operazione'),
-        h('span', { class:'v' }, eur0(p.atteso)),
-        h('span', { class:'n' }, scost(p.delta), ' · in ' + mesi + ' mesi')),
+        h('span', { class:'l' }, 'Utile atteso'),
+        h('span', { class:'v' }, eur0(utileProp * qs)),
+        h('span', { class:'n' }, 'netto del compenso di gestione · ' + scost(p.delta))),
       h('div', { class:'hero-side' },
-        h('div', { class:'fig buono' }, h('span', { class:'l' }, 'Ritorno sul capitale (ROI)'), h('span', { class:'v' }, pct(roi)), h('span', { class:'n' }, pct(roi * 12 / mesi) + ' su base annua')),
-        big('Capitale complessivo', eur0(p.costo), 'versato finora ' + eur0(c.versato)),
-        big('Ricavi attesi', eur0(p.ric), p.vendute + ' di ' + p.unita + ' unità vendute'))),
+        big('Rendimento sul capitale', pct(p.costo ? utileProp / p.costo : 0), pct(p.costo ? utileProp / p.costo * 12 / mesi : 0) + ' su base annua · in ' + mesi + ' mesi'),
+        big('Capitale da impegnare', eur0(p.costo * qs), ps.map(function(x){ return x.nome.replace(/ S\.R\.L\.$/i, '') + ' ' + eur0(c.perSoc[x.id] || 0); }).join(' · ') + ' versati'),
+        big('Rientro previsto', op.dataVenditaPrevista ? data(op.dataVenditaPrevista) : '–', 'capitale più utile: ' + eur0((p.costo + utileProp) * qs)))),
 
-    ps.length ? h('section', {},
-      h('h4', {}, 'Per ciascuna società proprietaria · quota ' + Math.round(qs * 100) + '%'),
-      h('div', { class:'tiles' },
-        tile('Capitale da impegnare', eur0(p.costo * qs), ps.map(function(x){ return x.nome.replace(/ S\.R\.L\.$/i, '') + ' ' + eur0(c.perSoc[x.id] || 0); }).join(' · ') + ' versati'),
-        buono(tile('Utile atteso', eur0(utileProp * qs), 'dopo il compenso di gestione del ' + Math.round(q * 100) + '%')),
-        buono(tile('Rendimento atteso', pct(p.costo ? utileProp / p.costo : 0), pct(p.costo ? utileProp / p.costo * 12 / mesi : 0) + ' su base annua')),
-        tile('Rientro previsto', op.dataVenditaPrevista ? data(op.dataVenditaPrevista) : '–', 'capitale più utile: ' + eur0((p.costo + utileProp) * qs)))) : null,
-
-    acc('o-piano', 'Piano e andamento · confronto in dettaglio', [
-      tabella('recap', [th('Voce'), th('Piano'), th('Oggi'), th('Scostamento')], [
-        riga('Costi complessivi', eur0(p.tot), eur0(p.costo), delta(p.costo - p.tot, true)),
-        riga('Ricavi di vendita', eur0(op.rivendita), eur0(p.ric), delta(p.ric - (Number(op.rivendita) || 0))),
-        riga('Margine dell’operazione', eur0(p.piano), eur0(p.atteso), delta(p.delta), true),
-        riga('ROI sul capitale', pct(roiPiano), pct(roi), delta(roi - roiPiano, false, true)),
-        riga('Utile alle Proprietarie · ' + Math.round((1 - q) * 100) + '%', eur0(utilePropPiano), eur0(utileProp), delta(utileProp - utilePropPiano)),
-        riga('Compenso di gestione · ' + Math.round(q * 100) + '%, oltre IVA', eur0(p.piano * q), eur0(p.atteso * q), delta((p.atteso - p.piano) * q))
-      ]),
-      h('p', { class:'small muted' }, '«Oggi» parte dal piano e lo corregge con le spese registrate e con i prezzi di vendita concordati.')
-    ]),
+    pross ? h('div', { class:'prossimo' },
+      h('div', { class:'t' }, h('span', { class:'l' }, 'Prossimo versamento'), h('strong', {}, pross.titolo), h('span', { class:'small muted' }, data(pross.data) + ' · ' + tra(pross.data))),
+      h('div', { class:'q' }, h('span', { class:'v' }, eur0(pross.importo * qs)), ps.length ? h('span', { class:'small muted' }, 'per società · ' + eur0(pross.importo) + ' in totale') : null)) : null,
 
     h('div', { class:'tiles' },
       tile('Fase', cur ? iCur + ' di ' + S.fasi.length : 'Conclusa', cur ? cur.titolo : 'Operazione chiusa',
         h('div', { class:'steps', role:'img', 'aria-label':'Fase ' + iCur + ' di ' + S.fasi.length }, S.fasi.map(function(f){ return h('span', { class:f.stato, title:f.titolo }); }))),
       tile('Prossima tappa', tappa ? data(tappa.inizio) : '–', tappa ? tappa.titolo + ' · ' + tra(tappa.inizio) : 'Nessuna tappa pianificata'),
-      tile('Prossima uscita', pross ? eur0(pross.importo) : '–', pross ? pross.titolo + ' · ' + data(pross.data) + (ps.length ? ' · ' + eur0(pross.importo * qs) + ' per società' : '') : 'Nessuna uscita in calendario'),
-      tile('Lavori', Math.round(av) + '%', av > 0 ? S.lavori.filter(isFatto).length + ' di ' + S.lavori.length + ' lavorazioni concluse' : 'Cantiere dal ' + (fc && fc.inizio ? data(fc.inizio) : 'rogito'), barra(av))),
+      av > 0 ? tile('Lavori', Math.round(av) + '%', S.lavori.filter(isFatto).length + ' di ' + S.lavori.length + ' lavorazioni concluse', barra(av)) : null),
 
     h('div', { class:'cols' },
       h('div', { class:'panel' },
@@ -1174,6 +1179,23 @@ function vOggi(){
         ultimi.length ? ultimi.map(function(u){
           return h('div', { class:'mini' }, h('span', { class:'when' }, dataCorta(u.data)), h('span', { class:'what' }, h('strong', {}, u.titolo), u.testo ? h('span', { class:'small muted' }, ' · ' + String(u.testo).split('\n')[0]) : null));
         }) : h('p', { class:'muted' }, 'Il primo aggiornamento arriverà a breve.'))),
+
+    acc('o-piano', 'L’operazione nel complesso · numeri e confronto col piano', [
+      h('div', { class:'tiles' },
+        tile('Margine dell’operazione', eur0(p.atteso), scost(p.delta)),
+        tile('ROI sul capitale', pct(roi), pct(roi * 12 / mesi) + ' su base annua'),
+        tile('Capitale complessivo', eur0(p.costo), 'versato finora ' + eur0(c.versato)),
+        tile('Ricavi attesi', eur0(p.ric), p.vendute + ' di ' + p.unita + ' unità vendute')),
+      tabella('recap', [th('Voce'), th('Piano'), th('Oggi'), th('Scostamento')], [
+        riga('Costi complessivi', eur0(p.tot), eur0(p.costo), delta(p.costo - p.tot, true)),
+        riga('Ricavi di vendita', eur0(op.rivendita), eur0(p.ric), delta(p.ric - (Number(op.rivendita) || 0))),
+        riga('Margine dell’operazione', eur0(p.piano), eur0(p.atteso), delta(p.delta), true),
+        riga('ROI sul capitale', pct(roiPiano), pct(roi), delta(roi - roiPiano, false, true)),
+        riga('Utile alle Proprietarie · ' + Math.round((1 - q) * 100) + '%', eur0(utilePropPiano), eur0(utileProp), delta(utileProp - utilePropPiano)),
+        riga('Compenso di gestione · ' + Math.round(q * 100) + '%, oltre IVA', eur0(p.piano * q), eur0(p.atteso * q), delta((p.atteso - p.piano) * q))
+      ]),
+      h('p', { class:'small muted' }, '«Oggi» parte dal piano e lo corregge con le spese registrate e con i prezzi di vendita concordati.')
+    ]),
 
     blocchiOperazione()
   ];
@@ -1204,7 +1226,7 @@ function vLavori(){
       S.lavori.length ? h('div', {}, S.lavori.map(function(l){
         var a = Number(l.avanzamento) || 0, tardi = S.canEdit && l.fine && l.fine < og && l.stato !== 'fatto';
         return h('div', { class:'lav' },
-          h('div', { class:'what' }, h('strong', {}, l.titolo), h('span', { class:'small muted' }, l.impresa || 'Impresa da assegnare'), l.nota ? h('span', { class:'small' }, l.nota) : null),
+          h('div', { class:'what' }, h('strong', {}, l.titolo), l.impresa ? h('span', { class:'small muted' }, l.impresa) : (S.canEdit ? h('span', { class:'small muted' }, 'Impresa da inserire') : null), l.nota ? h('span', { class:'small' }, l.nota) : null),
           h('span', { class:'small ' + (tardi ? 'neg' : 'muted') }, l.inizio ? dataCorta(l.inizio) + ' → ' + dataCorta(l.fine || l.inizio) : ''),
           h('div', { class:'prog' }, barra(a), h('span', { class:'num' }, a + '%')),
           tardi ? pill('crit', 'In ritardo') : pillStato(l.stato),
@@ -1221,6 +1243,8 @@ function vLavori(){
       h('div', { class:'sec-head' }, h('div', {}, h('h2', {}, 'Foto del cantiere')), S.canEdit ? btn('Aggiungi foto', function(){ editDiario(); }, 'ghost') : null),
       foto.length ? griglia(foto.slice(0, 24), 'cantiere') : h('p', { class:'muted' }, 'Le foto dello stato iniziale e dell’avanzamento compariranno qui, caricate con gli aggiornamenti.'))
   ];
+  if (!aperto) pz[2] = acc('l-lav', 'Lavorazioni previste · ' + S.lavori.length, [pz[2]]);
+  if (!aperto && !foto.length && !S.canEdit) pz[4] = null;
   return [pz[0], pz[1], pz[2], pz[4], pz[3] ? acc('l-prep', 'Preparazione del cantiere · ' + prep.filter(isFatto).length + ' di ' + prep.length + ' attività', [pz[3]]) : null];
 }
 
@@ -1418,10 +1442,17 @@ function vPiano(){
   return [
     testa('Piano d’azione', S.op.pianoNota, btn('Aggiungi fase', function(){ editFase(); })),
     gantt(),
-    tutte ? h('p', {}, h('span', { class:'num', style:'font-size:22px' }, fatte + ' di ' + tutte), ' attività completate') : null,
+    (function(){
+      var cur = faseAttuale(), n = cur ? S.fasi.indexOf(cur) + 1 : S.fasi.length;
+      return S.fasi.length ? h('div', { class:'siamo-qui' },
+        h('span', { class:'l' }, cur ? 'Siamo qui · fase ' + n + ' di ' + S.fasi.length : 'Operazione conclusa'),
+        cur ? h('strong', {}, cur.titolo) : null,
+        h('div', { class:'steps', role:'img', 'aria-label':'Fase ' + n + ' di ' + S.fasi.length }, S.fasi.map(function(f){ return h('span', { class:f.stato, title:f.titolo }); })),
+        tutte ? h('span', { class:'small muted' }, fatte + ' di ' + tutte + ' attività completate · tocca una fase per vederne il dettaglio') : null) : null;
+    })(),
     S.fasi.length ? S.fasi.map(function(f, i){
       var az = S.azioni.filter(function(a){ return a.fase === f.id; }).sort(byOrdine);
-      return accEl('fase-' + f.id, f.stato === 'in-corso', 'fase-blk ' + (f.stato || 'da-fare'),
+      return accEl('fase-' + f.id, false, 'fase-blk ' + (f.stato || 'da-fare'),
         h('summary', { class:'fase-head' },
           h('span', { class:'n' }, String(i + 1).padStart(2, '0')),
           h('div', { class:'stack', style:'gap:4px' }, h('h3', { style:'font-size:17px' }, f.titolo), f.descr ? h('p', { class:'muted small prose' }, f.descr) : null, f.nota ? h('p', { class:'nota' }, f.nota) : null),
@@ -1433,8 +1464,8 @@ function vPiano(){
             S.canEdit ? h('button', { class:'pill ' + (a.stato === 'fatto' ? 'ok' : a.stato === 'in-corso' ? 'gold' : 'neutral'), type:'button', title:'Cambia stato', onclick:function(){ cicla(a); } },
               a.stato === 'fatto' ? 'Fatto' : a.stato === 'in-corso' ? 'In corso' : 'Da fare') : pillStato(a.stato),
             h('span', { class:'tt' }, a.titolo, a.nota ? h('span', { class:'small muted' }, ' — ' + a.nota) : null),
-            h('span', { class:'chi' }, a.chi || ''),
-            h('span', { class:'when' + (S.canEdit && a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, a.scadenza ? data(a.scadenza) : ''),
+            h('span', { class:'chi' }, S.canEdit ? (a.chi || '') : ''),
+            h('span', { class:'when' + (S.canEdit && a.scadenza && a.scadenza < og && a.stato !== 'fatto' ? ' neg' : '') }, a.scadenza && (S.canEdit || a.stato !== 'fatto') ? data(a.scadenza) : ''),
             modifica(function(){ editAzione(a); }) || h('span', {}));
         }), S.canEdit ? h('div', { class:'task' }, h('button', { class:'link', type:'button', style:'grid-column:1 / -1;text-align:left', onclick:function(){ editAzione(null, f.id); } }, 'Aggiungi attività')) : null));
     }) : vuoto('Nessuna fase inserita.', btn('Aggiungi la prima fase', function(){ editFase(); }))
@@ -1751,7 +1782,7 @@ avvia();
 </script>
 <script>
 (function(){
-  var V = 'aa2d21402813';
+  var V = 'd140d81716fe';
   function controlla(){
     fetch('versione.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
       t = (t || '').trim();
